@@ -74,7 +74,7 @@ public final class GameScreen extends ScreenAdapter {
             else for (game.lumi.entities.PuzzleProp s : game.world.stones.stones) if (!s.lit) { t = s; break; }
             if (t != null) { game.world.player.x = t.x + 0.25f; game.world.player.y = t.y + 0.25f; }
         }
-        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F6)) game.cam.camera.zoom = game.cam.camera.zoom > 1f ? 1f : 2.6f; // Entwickler: Übersicht
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F6)) game.cam.camera.zoom = game.cam.camera.zoom > 1f ? 1f : 4.2f; // Entwickler: Übersicht
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F8)) game.world.particles.quality = game.world.particles.quality > 0f ? 0f : 1f;
         if (input.pause) { if (settingsOpen) settingsOpen = false; else setPaused(!paused); }
 

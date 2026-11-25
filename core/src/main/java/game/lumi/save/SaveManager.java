@@ -9,7 +9,7 @@ import com.badlogic.gdx.Preferences;
  * nicht möglich ist (z. B. blockierter Browser-Speicher), läuft das Spiel einfach ohne Speicherstand.
  */
 public final class SaveManager {
-    private static final String NAME = "lumi_zauberwald_v1";
+    private static final String NAME = "lumi_zauberwald_v2";
     private Preferences prefs;
     private float sinceFlush;
     private boolean dirty;

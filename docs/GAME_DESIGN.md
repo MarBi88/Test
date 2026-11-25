@@ -6,6 +6,8 @@
 
 **Lumi:** orangefarbener Fuchs, cremefarbener Bauch, große Kulleraugen, große Ohren mit dunklen Spitzen, flauschiger Schwanz mit heller Spitze, leuchtender türkiser Anhänger.
 
+**Weltgröße:** 96×96 Kacheln (Fläche 2,25× des ersten Prototyps), bewusst licht bewachsen: Bäume stehen weit auseinander, nur ein schmaler, aufgelockerter Waldsaum am Rand; viel offene Wiese mit Blumen, Wegen, Teich, Bach.
+
 ## Umsetzungsstand
 
 | Bereich | Stand |

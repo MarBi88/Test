@@ -18,7 +18,9 @@ import game.lumi.entities.Decor;
 public final class WorldMap {
     public static final int N = GameConfig.WORLD_TILES;
     public static final float CX = N / 2f, CY = N / 2f;
-    private static final float R = 25f;
+    /** Maßstab der Welt gegenüber dem ersten Prototyp (64 Kacheln): Abstände der Inhalte skalieren mit. */
+    private static final float K = 1.5f;
+    private static final float R = 25f * K;
 
     /** Bodenfleck (weiches Oval in Bildschirmgröße). */
     public static final class Decal {
@@ -42,15 +44,15 @@ public final class WorldMap {
     public final boolean[] tileActive = new boolean[N * N];
 
     public float spawnX = CX, spawnY = CY;
-    public float pondX = CX + 11f, pondY = CY + 9.5f, pondRx = 4.6f, pondRy = 3.2f;
+    public float pondX = CX + 11f * K, pondY = CY + 9.5f * K, pondRx = 6f, pondRy = 4.2f;
     private final FloatArray pathX = new FloatArray(), pathY = new FloatArray();
 
     /** Geheime Lichtung (magischer Platz): von Büschen umringt, Zugang nur durch das Ranken-Tor. */
     public static final float SECRET_R = 3.4f;
-    public final float secretX = CX + 9.5f, secretY = CY - 16f;
+    public final float secretX = CX + 9.5f * K, secretY = CY - 16f * K;
     public final float gateAngle = MathUtils.atan2(3f, 2.5f);
     /** Felswand mit Höhle und Wasserfall im Süden; Bach fließt zum Teich. */
-    public final float cliffX = CX - 2f, cliffY = CY + 16f;
+    public final float cliffX = CX - 2f * K, cliffY = CY + 16f * K;
     private final FloatArray stX = new FloatArray(), stY = new FloatArray();
     public boolean gateOpen;
     public final Array<Decor> gateDecor = new Array<>();
@@ -227,13 +229,13 @@ public final class WorldMap {
 
     private void buildPath() {
         float[][] pts = {
-            { CX, CY }, { CX + 4, CY - 2 }, { CX + 8, CY - 4 }, { CX + 11, CY - 8 }, { CX + 12, CY - 13 }, { CX + 10, CY - 17 },
+            { CX, CY }, { CX + K * 4f, CY - K * 2f }, { CX + K * 8f, CY - K * 4f }, { CX + K * 11f, CY - K * 8f }, { CX + K * 12f, CY - K * 13f }, { CX + K * 10f, CY - K * 17f },
         };
         float[][] pts2 = {
-            { CX, CY }, { CX - 4, CY + 3 }, { CX - 8, CY + 5 }, { CX - 12, CY + 9 }, { CX - 14, CY + 14 }, { CX - 13, CY + 18 },
+            { CX, CY }, { CX - K * 4f, CY + K * 3f }, { CX - K * 8f, CY + K * 5f }, { CX - K * 12f, CY + K * 9f }, { CX - K * 14f, CY + K * 14f }, { CX - K * 13f, CY + K * 18f },
         };
         float[][] pts3 = {
-            { CX, CY }, { CX + 3, CY + 4 }, { CX + 5, CY + 7 },
+            { CX, CY }, { CX + K * 3f, CY + K * 4f }, { CX + K * 5f, CY + K * 7f },
         };
         for (float[][] set : new float[][][] { pts, pts2, pts3 }) {
             for (int i = 0; i < set.length - 1; i++) {
@@ -311,14 +313,14 @@ public final class WorldMap {
         // Sonnige Lichtung
         for (int i = 0; i < 6; i++) addDecal(decals, CX + rf(-2, 2), CY + rf(-2, 2), 4.5f + rf(0, 2.5f), 1f, sun, 0.16f, 0);
         // Flecken in Gras-Tönen für organische Bodenstruktur
-        for (int i = 0; i < 260; i++) {
+        for (int i = 0; i < 560; i++) {
             float x = rf(4, N - 4), y = rf(4, N - 4);
             float f = field(x, y);
             if (f > 1.15f) continue;
             boolean light = rnd.nextFloat() < 0.5f;
             addDecal(decals, x, y, rf(1.2f, 3.4f), 1f, light ? lightGrass : darkGrass, light ? 0.20f : 0.24f, 0);
         }
-        for (int i = 0; i < 70; i++) {
+        for (int i = 0; i < 150; i++) {
             float x = rf(6, N - 6), y = rf(6, N - 6);
             if (field(x, y) > 1.0f) continue;
             addDecal(decals, x, y, rf(0.8f, 1.8f), 1f, moss, 0.30f, 0);
@@ -410,14 +412,14 @@ public final class WorldMap {
         fall.fall = true; fall.flip = false; fall.alpha = 0.82f;
         // --- Bäume: erst dichter Waldrand, dann lichter Innenraum
         int tries = 0;
-        while (tries++ < 6000) {
+        while (tries++ < 12000) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
             float f = field(x, y);
             if (f > 1.18f || inSecret(x, y, 2.6f) || nearCliff(x, y, 0.8f) || nearStream(x, y, 1.7f)) continue;
-            boolean rim = f > 0.80f;
-            if (!rim && (nearSpawn(x, y, 7.5f) || distToPath(x, y) < 1.7f || inPond(x, y, 2.0f))) continue;
+            boolean rim = f > 0.86f;
+            if (!rim && (nearSpawn(x, y, 9f) || distToPath(x, y) < 1.7f || inPond(x, y, 2.0f))) continue;
             if (rim && (distToPath(x, y) < 1.0f && f < 0.95f)) continue;
-            float gap = rim ? 1.7f : 3.8f;
+            float gap = rim ? 2.6f : 5.4f;
             if (!spaceFor(x, y, gap)) continue;
             int v = rnd.nextInt(trees.size);
             if (rim && v == 1 && rnd.nextFloat() < 0.5f) v = 2;
@@ -432,10 +434,10 @@ public final class WorldMap {
         }
         // --- Büsche
         tries = 0; int count = 0;
-        while (tries++ < 3000 && count < 110) {
+        while (tries++ < 5000 && count < 85) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
             if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
-            if (!spaceFor(x, y, 1.5f)) continue;
+            if (!spaceFor(x, y, 2.4f)) continue;
             Decor d = add(bushes.get(rnd.nextInt(bushes.size)), x, y, rf(0.65f, 1.0f), 16f);
             d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f); d.tint = tintFor(x, y, 1.0f);
             d.shadowW = 150f * d.scale; d.shadowH = 60f * d.scale; d.solid = 0.28f * d.scale;
@@ -443,7 +445,7 @@ public final class WorldMap {
         }
         // --- Steine
         tries = 0; count = 0;
-        while (tries++ < 2000 && count < 26) {
+        while (tries++ < 3000 && count < 30) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
             if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
@@ -453,7 +455,7 @@ public final class WorldMap {
         }
         // --- Baumstämme
         tries = 0; count = 0;
-        while (tries++ < 1000 && count < 5) {
+        while (tries++ < 2000 && count < 8) {
             float x = rf(6, N - 6), y = rf(6, N - 6);
             if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
             Decor d = add(log, x, y, rf(0.8f, 1.0f), 22f);
@@ -462,7 +464,7 @@ public final class WorldMap {
         }
         // --- Pilze (an Baumrändern)
         tries = 0; count = 0;
-        while (tries++ < 2000 && count < 34) {
+        while (tries++ < 3000 && count < 46) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
             if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
             Decor d = add(mush.get(rnd.nextInt(mush.size)), x, y, rf(0.7f, 1.1f), 10f);
@@ -470,7 +472,7 @@ public final class WorldMap {
             count++;
         }
         // --- Blumenwiesen (Gruppen) + einzelne Blumen
-        for (int c = 0; c < 22; c++) {
+        for (int c = 0; c < 36; c++) {
             float cx = rf(5, N - 5), cy = rf(5, N - 5);
             if (field(cx, cy) > 0.92f || inPond(cx, cy, 1f)) continue;
             int kind = rnd.nextInt(flowers.size);
@@ -486,7 +488,7 @@ public final class WorldMap {
         }
         // --- Grasbüschel
         tries = 0; count = 0;
-        while (tries++ < 4000 && count < 320) {
+        while (tries++ < 8000 && count < 700) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
             if (field(x, y) > 1.0f || inPond(x, y, 0.2f) || distToPath(x, y) < 0.45f) continue;
             Decor d = add(tufts.get(rnd.nextInt(tufts.size)), x, y, rf(0.8f, 1.5f), 4f);

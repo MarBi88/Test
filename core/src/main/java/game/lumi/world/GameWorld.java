@@ -118,9 +118,9 @@ public final class GameWorld {
         add(map.cliffX + 0.35f, map.cliffY + 0.35f, true); // hinter dem Wasserfall in der Höhle
         int tries = 0;
         while (crystals.size < 11 && tries++ < 5000) {
-            float x = map.spawnX + r.nextFloat() * 36f - 18f, y = map.spawnY + r.nextFloat() * 36f - 18f;
+            float x = map.spawnX + r.nextFloat() * 56f - 28f, y = map.spawnY + r.nextFloat() * 56f - 28f;
             float dx = x - map.spawnX, dy = y - map.spawnY;
-            if (dx * dx + dy * dy < 16f || map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
+            if (dx * dx + dy * dy < 16f || map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 6.5f)) continue;
             add(x, y, false);
         }
         // hinter Bäumen: "oben" auf dem Bildschirm = kleinere Tiefe → x, y verkleinern
@@ -132,13 +132,13 @@ public final class GameWorld {
             if (crystals.size >= CRYSTALS) break;
             float x = t.x - 0.95f, y = t.y - 0.95f;
             if (map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f)) continue;
-            if (!map.free(x, y, 0.45f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
+            if (!map.free(x, y, 0.45f) || !reachable(x, y) || !farFromOthers(x, y, 6.5f)) continue;
             add(x, y, true);
         }
         // Falls zu wenig versteckte Plätze: Rest offen
         tries = 0;
         while (crystals.size < CRYSTALS && tries++ < 5000) {
-            float x = map.spawnX + r.nextFloat() * 36f - 18f, y = map.spawnY + r.nextFloat() * 36f - 18f;
+            float x = map.spawnX + r.nextFloat() * 56f - 28f, y = map.spawnY + r.nextFloat() * 56f - 28f;
             if (map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 3f)) continue;
             add(x, y, false);
         }
@@ -160,9 +160,9 @@ public final class GameWorld {
     /** Kaninchen und Vogel nahe der Lichtung; das Eichhörnchen wohnt neben einem versteckten Kristall (sein Geschenk). */
     private void placeAnimals() {
         Animal rabbit = new Animal(Animal.Type.RABBIT);
-        findFree(rabbit, map.spawnX - 6f, map.spawnY + 3.5f);
+        findFree(rabbit, map.spawnX - 8f, map.spawnY + 5f);
         Animal bird = new Animal(Animal.Type.BIRD);
-        findFree(bird, map.spawnX + 4.5f, map.spawnY - 4.5f);
+        findFree(bird, map.spawnX + 6f, map.spawnY - 6f);
         Animal squirrel = new Animal(Animal.Type.SQUIRREL);
         Collectible gift = null;
         for (Collectible c : crystals) if (c.hidden) { gift = c; break; }
@@ -239,7 +239,7 @@ public final class GameWorld {
 
     /** Blumenrätsel nahe der Lichtung, drei magische Steine weit verteilt. */
     private void placePuzzleProps() {
-        float[] f = spot(map.spawnX - 2f, map.spawnY - 7.5f, 1.8f);
+        float[] f = spot(map.spawnX - 3f, map.spawnY - 11f, 1.8f);
         flowerCx = f[0]; flowerCy = f[1];
         int[] colorAtPos = { 2, 0, 1 }; // räumliche Reihenfolge ≠ Lösungsreihenfolge → man muss den Hinweisstein lesen
         for (int i = 0; i < 3; i++) {
@@ -251,7 +251,7 @@ public final class GameWorld {
         flowers.hint.x = h[0]; flowers.hint.y = h[1];
         props.add(flowers.hint);
         map.addObstacle(h[0], h[1], 0.5f);
-        float[][] want = { { -10f, -3f }, { 3f, 10f }, { 11f, 1f } };
+        float[][] want = { { -17f, -6f }, { 6f, 17f }, { 18f, 3f } };
         for (int i = 0; i < 3; i++) {
             float[] q = spot(map.spawnX + want[i][0], map.spawnY + want[i][1], 0.8f);
             stones.stones[i] = prop(PuzzleProp.Kind.STONE, i, q[0], q[1]);

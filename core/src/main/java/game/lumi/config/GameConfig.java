@@ -13,7 +13,7 @@ public final class GameConfig {
     public static final float TILE_H = 64f;
 
     /** Weltgröße in Kacheln (quadratisch). Der begehbare Bereich ist eine organische Form darin. */
-    public static final int WORLD_TILES = 64;
+    public static final int WORLD_TILES = 96;
 
     /** Bewegung in Kacheln pro Sekunde. Für ein 5-jähriges Kind bewusst gemütlich. */
     public static final float WALK_SPEED = 3.4f;
