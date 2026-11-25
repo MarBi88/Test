@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>Lumi – Das Geheimnis des Zauberwaldes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0f2a1f; touch-action: none; -webkit-user-select: none; user-select: none; }
+        #embed-html { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+        canvas { display: block; touch-action: none; outline: none; }
+        #loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        #loading i { display:inline-block; width:14px; height:14px; border-radius:50%; background:#ffd98a; margin:0 6px; animation: p 1.2s infinite ease-in-out; }
+        #loading i:nth-child(2){animation-delay:.2s} #loading i:nth-child(3){animation-delay:.4s}
+        @keyframes p { 0%,100%{opacity:.25; transform:scale(.7)} 50%{opacity:1; transform:scale(1.1)} }
+    </style>
+</head>
+<body>
+    <div id="embed-html"></div>
+    <div id="loading"><i></i><i></i><i></i></div>
+    <script>
+        // Ladeanzeige ausblenden, sobald das Spiel-Canvas existiert.
+        window.addEventListener('load', function () {
+            var t = setInterval(function () {
+                var c = document.querySelector('#embed-html canvas');
+                if (c) { setTimeout(function(){ var l=document.getElementById('loading'); if(l) l.style.display='none'; }, 800); clearInterval(t); }
+            }, 100);
+        });
+        window.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    </script>
+    <script type="text/javascript" src="lumi/lumi.nocache.js"></script>
+</body>
+</html>

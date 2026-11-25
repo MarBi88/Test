@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to="lumi">
+    <inherits name="game.lumi.Lumi"/>
+    <set-configuration-property name="gdx.assetpath" value="../core/assets"/>
+    <entry-point class="game.lumi.client.HtmlLauncher"/>
+    <set-property name="user.agent" value="gecko1_8,safari"/>
+</module>

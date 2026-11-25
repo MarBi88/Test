@@ -1,0 +1,5 @@
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+}
+// Quellcode muss für GWT als Ressource mitgeliefert werden.
+sourceSets.main.resources.srcDir 'src/main/java'

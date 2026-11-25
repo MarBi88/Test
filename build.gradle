@@ -1,0 +1,16 @@
+// LUMI – Wurzel-Build. Gemeinsame Einstellungen für alle Module.
+allprojects {
+    version = '0.1.0'
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    // GWT 2.11 versteht Java-11-Syntax; deshalb für alle Module festnageln.
+    tasks.withType(JavaCompile).configureEach {
+        options.release = 11
+        options.encoding = 'UTF-8'
+    }
+}

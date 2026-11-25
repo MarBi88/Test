@@ -1,0 +1,9 @@
+build/
+.gradle/
+*.class
+.idea/
+*.iml
+out/
+.DS_Store
+local.properties
+html/war/

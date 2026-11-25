@@ -1,0 +1,8 @@
+apply plugin: 'application'
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+}
+application { mainClass = 'game.lumi.lwjgl3.Lwjgl3Launcher' }
+tasks.named('run') { workingDir = rootProject.projectDir; if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) jvmArgs '-XstartOnFirstThread' }

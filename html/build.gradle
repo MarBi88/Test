@@ -1,0 +1,71 @@
+// HTML5-Build über das offizielle libGDX-GWT-Backend.
+// Eigene JavaExec-Task statt Plugin: weniger Abhängigkeiten, volle Kontrolle.
+configurations { gwt }
+
+dependencies {
+    implementation project(':core')
+    implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+
+    gwt project(':core')
+    gwt "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
+    gwt "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+    gwt "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+    gwt "org.gwtproject:gwt-user:$gwtVersion"
+    gwt "org.gwtproject:gwt-dev:$gwtVersion"
+    gwt "javax.validation:validation-api:1.0.0.GA"
+    gwt "javax.validation:validation-api:1.0.0.GA:sources"
+}
+
+def gwtOut = layout.buildDirectory.dir('gwt')
+def distDir = layout.buildDirectory.dir('dist')
+
+tasks.register('gwtCompile', JavaExec) {
+    group = 'lumi'
+    description = 'Kompiliert den Java-Spielcode mit GWT nach JavaScript.'
+    mainClass = 'com.google.gwt.dev.Compiler'
+    classpath = files('src/main/java') + files(project(':core').sourceSets.main.allSource.srcDirs) + configurations.gwt + sourceSets.main.runtimeClasspath
+    dependsOn ':core:classes'
+    maxHeapSize = '2g'
+    doFirst {
+        args '-war', gwtOut.get().asFile.absolutePath + '/war',
+             '-workDir', gwtOut.get().asFile.absolutePath + '/work',
+             '-style', (project.hasProperty('gwtPretty') ? 'PRETTY' : 'OBF'),
+             '-optimize', '2',
+             '-localWorkers', '4',
+             '-failOnError',
+             '-logLevel', 'INFO',
+             'game.lumi.LumiHtml'
+    }
+    inputs.files(fileTree('src/main/java'), fileTree('../core/src/main/java'), fileTree('webapp'))
+    outputs.dir(gwtOut)
+}
+
+tasks.register('dist', Copy) {
+    group = 'lumi'
+    description = 'Baut das fertige Web-Verzeichnis (build/dist), startklar für jeden statischen Webserver.'
+    dependsOn 'gwtCompile'
+    into distDir
+    from('webapp')
+    from(gwtOut.map { it.dir('war/lumi') }) { into 'lumi' }
+    from('../core/assets') { into 'assets' }
+    // Der libGDX-Preloader braucht assets/assets.txt (Zeilen: Typ:Pfad:URL-Pfad:Größe:MIME:Preload).
+    doLast {
+        def root = file('../core/assets')
+        def lines = []
+        def typeOf = { String n ->
+            def e = n.contains('.') ? n.substring(n.lastIndexOf('.') + 1).toLowerCase() : ''
+            if (['png', 'jpg', 'jpeg', 'gif'].contains(e)) return ['i', 'image/' + (e == 'jpg' ? 'jpeg' : e)]
+            if (['ogg', 'mp3', 'wav'].contains(e)) return ['a', 'audio/' + (e == 'mp3' ? 'mpeg' : e)]
+            if (['txt', 'json', 'fnt', 'atlas', 'md'].contains(e)) return ['t', 'text/plain']
+            return ['b', 'application/octet-stream']
+        }
+        root.eachFileRecurse { f ->
+            if (f.isFile()) {
+                def rel = root.toPath().relativize(f.toPath()).toString().replace('\\', '/')
+                def t = typeOf(rel)
+                lines << "${t[0]}:${rel}:${rel}:${f.length()}:${t[1]}:1"
+            }
+        }
+        new File(distDir.get().asFile, 'assets/assets.txt').text = lines.join('\n')
+    }
+}
