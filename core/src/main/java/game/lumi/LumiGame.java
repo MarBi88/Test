@@ -7,6 +7,8 @@ import game.lumi.art.ArtFactory;
 import game.lumi.art.ArtSheet;
 import game.lumi.audio.AudioManager;
 import game.lumi.input.PointerTracker;
+import game.lumi.ui.SettingsMenu;
+import game.lumi.ui.UiLayer;
 import game.lumi.save.SaveManager;
 import game.lumi.screens.GameScreen;
 import game.lumi.screens.MenuScreen;
@@ -25,6 +27,7 @@ public class LumiGame extends Game {
     public WorldCamera cam;
     public final PointerTracker pointers = new PointerTracker();
 
+    private boolean interacted;
     private MenuScreen menu;
     private GameScreen gameScreen;
 
@@ -36,6 +39,10 @@ public class LumiGame extends Game {
         save = new SaveManager();
         audio = new AudioManager();
         audio.setEnabled(save.soundOn());
+        audio.setMusic(save.musicOn());
+        audio.setFx(save.fxOn());
+        audio.load();
+        UiLayer.onFire = () -> audio.play("click", 0.5f);
         art = ArtFactory.build();
         Gdx.app.log("Lumi", "Grafik erzeugt in " + (System.currentTimeMillis() - t0) + " ms");
         world = new GameWorld(art);
@@ -57,7 +64,6 @@ public class LumiGame extends Game {
             world.loadFlags(save.getFlags());
         } else {
             save.newGame();
-            audio.setEnabled(true);
             world.resetPlayer(world.map.spawnX, world.map.spawnY);
             world.loadCollected("");
             world.loadFlags("");
@@ -67,13 +73,46 @@ public class LumiGame extends Game {
         setScreen(gameScreen);
     }
 
+    /** Einstellungs-Aktionen für das Einstellungsmenü (von Start- und Pausenbildschirm genutzt). */
+    public SettingsMenu.Host settingsHost(Runnable onClose) {
+        return new SettingsMenu.Host() {
+            @Override public boolean music() { return audio.isMusic(); }
+            @Override public boolean fx() { return audio.isFx(); }
+            @Override public void toggleMusic() { audio.setMusic(!audio.isMusic()); save.setMusic(audio.isMusic()); }
+            @Override public void toggleFx() { audio.setFx(!audio.isFx()); save.setFx(audio.isFx()); }
+            @Override public void resetProgress() { LumiGame.this.resetProgress(); }
+            @Override public void close() { onClose.run(); }
+        };
+    }
+
+    /** Fortschritt löschen und neu beginnen (Einstellungen bleiben). */
+    public void resetProgress() {
+        save.newGame();
+        world.loadCollected("");
+        world.loadFlags("");
+        world.resetPlayer(world.map.spawnX, world.map.spawnY);
+        cam.snapTo(world.player.screenX(), world.player.screenY());
+    }
+
+    private void drainSfx() {
+        if (world == null) return;
+        for (int i = 0; i < world.sfx.size; i++) audio.play(world.sfx.get(i), world.sfxVol.get(i), 0.94f + (i % 3) * 0.06f);
+        world.sfx.clear(); world.sfxVol.clear();
+    }
+
     public void toggleSound() {
         audio.setEnabled(!audio.isEnabled());
         save.setSound(audio.isEnabled());
     }
 
     @Override public void render() {
+        // Browser-Autoplay: Audio erst nach der ersten Benutzerinteraktion starten
+        if (!interacted && (Gdx.input.justTouched() || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ANY_KEY) || pointers.downEvt[0])) {
+            interacted = true;
+            audio.onUserInteraction();
+        }
         super.render();
+        drainSfx();
         pointers.endFrame();
     }
 
@@ -82,6 +121,7 @@ public class LumiGame extends Game {
     @Override public void dispose() {
         if (save != null) save.flush();
         if (batch != null) batch.dispose();
+        if (audio != null) audio.dispose();
         if (art != null) art.dispose();
     }
 }

@@ -10,6 +10,7 @@ import game.lumi.entities.Player;
 import game.lumi.input.InputManager;
 import game.lumi.ui.GameHUD;
 import game.lumi.ui.PauseMenu;
+import game.lumi.ui.SettingsMenu;
 
 /** Der eigentliche Spielbildschirm: Welt, HUD, Pausenmenü. */
 public final class GameScreen extends ScreenAdapter {
@@ -19,6 +20,8 @@ public final class GameScreen extends ScreenAdapter {
     private final GameHUD hud;
     private final PauseMenu pauseMenu;
     private boolean paused;
+    private final SettingsMenu settings;
+    private boolean settingsOpen;
     /** F9: zeigt den prozeduralen Atlas (Entwickler-Hilfe zur Grafikkontrolle). */
     private boolean debugAtlas;
 
@@ -26,14 +29,16 @@ public final class GameScreen extends ScreenAdapter {
         this.game = game;
         input = new InputManager(game.pointers);
         hud = new GameHUD(game.art);
+        settings = new SettingsMenu(game.art, game.pointers, game.settingsHost(() -> settingsOpen = false));
         pauseMenu = new PauseMenu(game.art, game.pointers, () -> setPaused(false), () -> { savePosition(); game.save.flush(); game.showMenu(); },
-                () -> { game.toggleSound(); pauseMenu().setSound(game.audio.isEnabled()); }, game.audio.isEnabled());
+                () -> { game.toggleSound(); pauseMenu().setSound(game.audio.isEnabled()); }, () -> { settingsOpen = true; settings.open(); }, game.audio.isEnabled());
     }
 
     private PauseMenu pauseMenu() { return pauseMenu; }
 
     @Override public void show() {
         paused = false;
+        settingsOpen = false;
         input.clear();
         pauseMenu.setSound(game.audio.isEnabled());
     }
@@ -60,7 +65,7 @@ public final class GameScreen extends ScreenAdapter {
         }
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F6)) game.cam.camera.zoom = game.cam.camera.zoom > 1f ? 1f : 2.6f; // Entwickler: Übersicht
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F8)) game.world.particles.quality = game.world.particles.quality > 0f ? 0f : 1f;
-        if (input.pause) setPaused(!paused);
+        if (input.pause) { if (settingsOpen) settingsOpen = false; else setPaused(!paused); }
 
         if (!paused) {
             game.world.update(dt, input);
@@ -72,9 +77,13 @@ public final class GameScreen extends ScreenAdapter {
             if (game.world.progressChanged) { game.world.progressChanged = false; game.save.setFlags(game.world.flagsBits()); }
             if (game.world.collectionChanged) { game.world.collectionChanged = false; game.save.setCrystals(game.world.collectedBits()); }
             game.save.tick(dt);
+        } else if (settingsOpen) {
+            settings.update(dt, ui);
         } else {
             pauseMenu.update(dt, ui);
         }
+        float pdx = game.world.player.x - game.world.map.pondX, pdy = game.world.player.y - game.world.map.pondY;
+        game.audio.update(dt, (float) Math.sqrt(pdx * pdx + pdy * pdy) - game.world.map.pondRx, !paused, paused);
 
         Gdx.gl.glClearColor(0.06f, 0.16f, 0.12f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -85,7 +94,7 @@ public final class GameScreen extends ScreenAdapter {
         game.batch.setProjectionMatrix(ui.getCamera().combined);
         game.batch.begin();
         game.renderer.drawVignette(game.batch, ui.getWorldWidth(), ui.getWorldHeight());
-        if (paused) pauseMenu.draw(game.batch, ui);
+        if (paused) { if (settingsOpen) settings.draw(game.batch, ui); else pauseMenu.draw(game.batch, ui); }
         else hud.draw(game.batch, input.touch, dt, game.world.collectedBits(), ui.getWorldHeight(), game.world.interactTarget != null);
         if (debugAtlas) {
             game.batch.setColor(0.2f, 0.2f, 0.25f, 1f);

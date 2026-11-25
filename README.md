@@ -35,6 +35,8 @@ Tipp: Der GWT-Build dauert ca. 30–60 s; `-PgwtPretty` erzeugt lesbares JavaScr
 | Pause | Esc / P | Knopf oben rechts |
 | Spiel starten | Klick auf Play / Enter | Tippen |
 
+Ton: Musik, Vogelgezwitscher, Wind, Teich-Plätschern, Schritte (Gras/Weg), Sammel-, Tier- und Rätselklänge. Zahnrad im Start-/Pausenmenü: Musik an/aus, Effekte an/aus, Fortschritt zurücksetzen (Knopf 2 s halten). Die Klänge entstehen per `python3 tools/make_audio.py` (numpy + ffmpeg) in `core/assets/audio/`.
+
 Entwickler-Hilfen im Spiel: `F5` zum nächsten Rätselteil teleportieren, `F6` Übersichts-Zoom, `F9` Atlas anzeigen, `F1`–`F4` Ebenen ausblenden (Kacheln, Bodenflecken, Objekte, Schatten), `F8` Partikel an/aus.
 
 ## Projektstruktur

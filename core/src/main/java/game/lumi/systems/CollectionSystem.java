@@ -21,6 +21,7 @@ public final class CollectionSystem {
                 c.collected = true; got = true;
                 w.particles.burst(c.screenX(), c.screenY() + 50f, 26);
                 w.lumi.cheer();
+                w.sfx("collect", 0.8f); w.sfx("lumi_happy", 0.45f);
             }
         }
         if (!got && near < CURIOUS_R * CURIOUS_R && w.player.state == game.lumi.entities.Player.State.IDLE) w.lumi.beCurious(0.4f);

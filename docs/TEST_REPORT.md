@@ -48,6 +48,17 @@ Alle Angaben stammen aus tatsächlich ausgeführten Läufen in dieser Entwicklun
 | Hinweis nach Inaktivität (Lumi blickt zum Hinweisstein, Signal leuchtet) | ✔ Screenshot |
 | Weltgenerierung deterministisch (zwei Ladevorgänge liefern identische Kristall-/Tierpositionen) | ✔ |
 
+## Phase 4: Audio und Einstellungen
+
+| Test | Ergebnis |
+|---|---|
+| 28 MP3-Dateien erzeugt (Pegel per `volumedetect`: Spitzen ≤ −1,9 dB, Musik Ø −16,7 dB) | ✔ |
+| Browser lädt alle Audiodateien (HTTP 200), kein Dekodierfehler, `decodeAudioData` funktioniert in Chromium (Stichprobe) | ✔ |
+| Nach erstem Klick: Musik-, Wind- und Wasser-Schleife starten (Log „Audio gestartet“, gültige Sound-IDs) | ✔ |
+| Einstellungsmenü (Musik/Effekte umschalten, Symbolwechsel), Pausen-Overlay | ✔ Screenshots |
+| Zurücksetzen per 2-s-Halten | Code vorhanden, **nicht automatisiert getestet** |
+| **Tatsächliche Hörbarkeit/Klangqualität** | **nicht geprüft** – die Testumgebung hat keine Audioausgabe und ich kann nicht hören. Lautstärken sind nur rechnerisch gewählt (Musik 0,34, Wind 0,55, Effekte 0,3–0,8). |
+
 ## Gefundene und behobene Fehler
 
 1. GWT: `PreloaderBundle`-Fehler → Konfiguration `gdx.assetpath` ergänzt.

@@ -70,7 +70,30 @@ public final class UiArt {
         Painter knob = s.alloc("ui_knob", 128, 128);
         knob.sphere(64, 64, 60, Color.WHITE);
 
+        settingsIcons(s);
         title(s);
+    }
+
+    private static void settingsIcons(ArtSheet s) {
+        Color w = Color.WHITE;
+        Painter g = s.alloc("icon_gear", 128, 128);
+        for (float a = 0; a < MathUtils.PI2; a += 0.03f) g.disc(64 + MathUtils.cos(a) * 30, 64 + MathUtils.sin(a) * 30, 8f, w, 1f);
+        for (int i = 0; i < 8; i++) { float a = i * MathUtils.PI2 / 8; g.disc(64 + MathUtils.cos(a) * 42, 64 + MathUtils.sin(a) * 42, 12f, w, 1f); }
+        Painter b = s.alloc("icon_back", 128, 128);
+        b.stroke(100, 64, 30, 64, 16, w, 1f); b.stroke(30, 64, 64, 30, 16, w, 1f); b.stroke(30, 64, 64, 98, 16, w, 1f);
+        for (int off = 0; off < 2; off++) {
+            Painter m = s.alloc(off == 0 ? "icon_music" : "icon_music_off", 128, 128);
+            m.stroke(78, 24, 78, 88, 11, w, 1f); m.ellipse(60, 94, 22, 16, w); m.stroke(78, 24, 106, 44, 11, w, 1f);
+            if (off == 1) m.stroke(22, 22, 106, 106, 11, w, 1f);
+            Painter f = s.alloc(off == 0 ? "icon_fx" : "icon_fx_off", 128, 128);
+            f.tri(64, 10, 76, 52, 52, 52, w, 1f); f.tri(64, 118, 76, 76, 52, 76, w, 1f);
+            f.tri(10, 64, 52, 76, 52, 52, w, 1f); f.tri(118, 64, 76, 76, 76, 52, w, 1f);
+            f.disc(64, 64, 20, w, 1f);
+            if (off == 1) f.stroke(22, 22, 106, 106, 11, w, 1f);
+        }
+        Painter r = s.alloc("icon_reset", 128, 128);
+        for (float a = 0.5f; a < MathUtils.PI2 - 0.2f; a += 0.04f) r.disc(64 + MathUtils.cos(a) * 36, 64 + MathUtils.sin(a) * 36, 8f, w, 1f);
+        r.tri(112, 54, 85, 60, 103, 78, w, 1f);
     }
 
     /** "LUMI" als dicke, runde Strichbuchstaben – kein Font nötig, passt zum Stil. */

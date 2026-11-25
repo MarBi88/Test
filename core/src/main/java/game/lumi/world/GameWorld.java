@@ -44,6 +44,10 @@ public final class GameWorld {
     /** Nächstes interaktives Tier in Reichweite (oder null) – steuert Hinweis-Taste. */
     public Animal interactTarget;
     public float time;
+    /** Klang-Ereignisse; werden pro Frame vom Bildschirm an den AudioManager übergeben (Spiellogik kennt kein Audio). */
+    public final Array<String> sfx = new Array<>();
+    public final com.badlogic.gdx.utils.FloatArray sfxVol = new com.badlogic.gdx.utils.FloatArray();
+    private float stepAccum;
     /** Wird gesetzt, wenn sich der Sammelstand ändert (Speichern). */
     public boolean collectionChanged;
     /** Tier-Fortschritt hat sich geändert (Speichern). */
@@ -266,6 +270,29 @@ public final class GameWorld {
         return c;
     }
 
+    public void sfx(String name, float vol) { if (sfx.size < 24) { sfx.add(name); sfxVol.add(vol); } }
+
+    /** Klang an einem Ort: mit dem Abstand zu Lumi leiser. */
+    public void sfxAt(String name, float vol, float x, float y) {
+        float dx = x - player.x, dy = y - player.y, d = (float) Math.sqrt(dx * dx + dy * dy);
+        float k = MathUtils.clamp(1f - d / 14f, 0f, 1f);
+        sfx(name, vol * k * k);
+    }
+
+    private void footsteps(float dt) {
+        float sp = (float) Math.sqrt(player.vx * player.vx + player.vy * player.vy);
+        if (player.justJumped) sfx("jump", 0.5f);
+        if (player.justLanded) sfx("land", 0.55f);
+        if (!player.grounded || sp < 0.6f) { stepAccum = Math.min(stepAccum, 0.4f); return; }
+        stepAccum += sp * dt;
+        float stride = sp > 4.2f ? 1.15f : 0.85f;
+        if (stepAccum >= stride) {
+            stepAccum = 0f;
+            boolean path = map.distToPath(player.x, player.y) < 0.75f;
+            sfx((path ? "step_path" : "step_grass") + MathUtils.random(2), 0.5f + MathUtils.random(0.15f));
+        }
+    }
+
     public int collectedCount() {
         int n = 0;
         for (Collectible c : crystals) if (c.collected) n++;
@@ -295,6 +322,7 @@ public final class GameWorld {
     public void update(float dt, InputManager in) {
         time += dt;
         movement.update(player, in, map, dt);
+        footsteps(dt);
         for (Puzzle pz : puzzles) pz.update(this, dt);
         hints.update(this, dt);
         animalSystem.update(this, dt);

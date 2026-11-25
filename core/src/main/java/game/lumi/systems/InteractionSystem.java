@@ -25,12 +25,14 @@ public final class InteractionSystem {
         w.lumi.interact();
         switch (best.type) {
             case RABBIT:
+                w.sfx("feed", 0.7f); w.sfx("rabbit", 0.55f);
                 best.done = true; best.happy = 3f; best.mode = Animal.Mode.SIT; best.modeTime = 0f;
                 w.particles.burst(best.screenX(), best.screenY() + 80f, 22, 1f, 0.5f, 0.65f);
                 w.progressChanged = true;
                 break;
             case SQUIRREL:
                 best.mode = Animal.Mode.DIG; best.modeTime = 0f;
+                w.sfx("dig", 0.6f); w.sfx("squirrel", 0.5f);
                 break;
             default:
                 animals.interactBird(w, best);

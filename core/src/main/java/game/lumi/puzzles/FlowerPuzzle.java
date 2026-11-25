@@ -39,15 +39,18 @@ public final class FlowerPuzzle extends Puzzle {
             f.lit = true; progress++;
             w.particles.burst(f.screenX(), f.screenY() + 50f, 12, colorR(f.idx), colorG(f.idx), colorB(f.idx));
             w.lumi.cheer();
+            w.sfx("flower" + f.idx, 0.7f);
             if (progress >= 3) solve(w);
         } else { // falsche Blume: sanft zurücksetzen
             f.wiggle = 0.6f; lockout = 0.8f; progress = 0;
+            w.sfx("wrong", 0.5f);
             for (PuzzleProp o : flowers) o.lit = false;
         }
     }
 
     private void solve(GameWorld w) {
         solved = true;
+        w.sfx("stone_on", 0.6f);
         if (reward != null) {
             reward.active = true;
             w.particles.burst(reward.screenX(), reward.screenY() + 50f, 34, 0.6f, 1f, 0.92f);

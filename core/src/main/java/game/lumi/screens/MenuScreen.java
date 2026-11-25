@@ -10,6 +10,7 @@ import game.lumi.LumiGame;
 import game.lumi.config.GameConfig;
 import game.lumi.input.InputManager;
 import game.lumi.ui.MainMenu;
+import game.lumi.ui.SettingsMenu;
 
 /** Startbildschirm: Die lebendige Waldwelt läuft im Hintergrund (Lumi sitzt im Sonnenlicht). */
 public final class MenuScreen extends ScreenAdapter {
@@ -17,12 +18,15 @@ public final class MenuScreen extends ScreenAdapter {
     private final ExtendViewport ui = new ExtendViewport(GameConfig.VIEW_W, GameConfig.VIEW_H);
     private final MainMenu menu;
     private final InputManager noInput;
+    private final SettingsMenu settings;
+    private boolean settingsOpen;
     private float time;
 
     public MenuScreen(LumiGame game) {
         this.game = game;
         noInput = new InputManager(game.pointers);
-        menu = new MainMenu(game.art, game.pointers, () -> game.startGame(game.save.hasGame()), () -> { game.toggleSound(); menu().setSound(game.audio.isEnabled()); }, game.audio.isEnabled());
+        settings = new SettingsMenu(game.art, game.pointers, game.settingsHost(() -> settingsOpen = false));
+        menu = new MainMenu(game.art, game.pointers, () -> game.startGame(game.save.hasGame()), () -> { game.toggleSound(); menu().setSound(game.audio.isEnabled()); }, () -> { settingsOpen = true; settings.open(); }, game.audio.isEnabled());
     }
 
     private MainMenu menu() { return menu; }
@@ -32,13 +36,20 @@ public final class MenuScreen extends ScreenAdapter {
         game.cam.snapTo(game.world.player.screenX(), game.world.player.screenY());
         menu.setSound(game.audio.isEnabled());
         menu.layer.cancel();
+        settingsOpen = false;
     }
 
     @Override public void render(float dt) {
         dt = Math.min(dt, 1f / 20f);
         time += dt;
-        if (Gdx.input.isKeyJustPressed(Keys.ENTER) || Gdx.input.isKeyJustPressed(Keys.SPACE)) game.startGame(game.save.hasGame());
-        menu.update(dt, ui);
+        if (settingsOpen) {
+            settings.update(dt, ui);
+            if (Gdx.input.isKeyJustPressed(Keys.ESCAPE)) settingsOpen = false;
+        } else {
+            if (Gdx.input.isKeyJustPressed(Keys.ENTER) || Gdx.input.isKeyJustPressed(Keys.SPACE)) game.startGame(game.save.hasGame());
+            menu.update(dt, ui);
+        }
+        game.audio.update(dt, 99f, false, false);
         // Kamera schwebt langsam über der Lichtung
         game.world.update(dt, noInput);
         float px = game.world.player.screenX() + MathUtils.sin(time * 0.25f) * 140f;
@@ -56,6 +67,7 @@ public final class MenuScreen extends ScreenAdapter {
         game.batch.begin();
         game.renderer.drawVignette(game.batch, ui.getWorldWidth(), ui.getWorldHeight());
         menu.draw(game.batch, ui);
+        if (settingsOpen) settings.draw(game.batch, ui);
         game.batch.end();
     }
 

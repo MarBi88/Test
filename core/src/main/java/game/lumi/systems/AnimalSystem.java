@@ -102,7 +102,9 @@ public final class AnimalSystem {
                 if (c != null) {
                     c.active = true;
                     w.particles.burst(c.screenX(), c.screenY() + 50f, 34, 0.6f, 1f, 0.92f);
+                    w.sfx("stone_on", 0.5f);
                 }
+                w.sfx("squirrel", 0.5f);
                 w.progressChanged = true;
             }
             return;
@@ -156,7 +158,7 @@ public final class AnimalSystem {
             if (dist > 0.01f) { a.x += dx / dist * step; a.y += dy / dist * step; a.facing = (dx - dy) >= 0f ? 1 : -1; }
             float up = Math.min(a.modeTime * 90f, 70f), down = dist * 22f;
             a.z = Math.min(up, down + 0f) + MathUtils.sin(a.anim * 9f) * 3f;
-            if (dist < 0.05f) { a.mode = Animal.Mode.SIT; a.modeTime = 0f; a.z = 0f; a.happy = 1.8f; a.timer = 4f; }
+            if (dist < 0.05f) { a.mode = Animal.Mode.SIT; a.modeTime = 0f; a.z = 0f; a.happy = 1.8f; a.timer = 4f; w.sfxAt("bird_call", 0.55f, a.x, a.y); }
             return;
         }
         // am Boden: kleine Hüpfer
@@ -168,12 +170,14 @@ public final class AnimalSystem {
             if (c != null) sendBird(w, a, c);
         } else if (a.nearLumi && a.timer <= 0f && a.crystalId >= 0) {
             a.happy = 1.4f; a.timer = 5f; // zwitschert am Landeplatz und lockt Lumi
+            w.sfxAt("bird_call", 0.55f, a.x, a.y);
         }
     }
 
     /** Antippen/E beim Vogel: sofort zwitschern und (wenn nötig) zum versteckten Ort fliegen. */
     public void interactBird(GameWorld w, Animal a) {
         a.happy = 1.6f;
+        w.sfxAt("bird_call", 0.6f, a.x, a.y);
         Collectible c = pickTarget(w, w.player);
         if (c != null && (a.crystalId != c.id || a.mode != Animal.Mode.FLY)) sendBird(w, a, c);
     }

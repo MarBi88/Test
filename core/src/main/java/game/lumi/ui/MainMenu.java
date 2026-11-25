@@ -11,17 +11,18 @@ import game.lumi.input.PointerTracker;
 /** Startbildschirm: Titel + großer Spielen-Knopf + Ton-Schalter. Keine Textpassagen. */
 public final class MainMenu {
     public final UiLayer layer;
-    private final UiButton play, sound;
+    private final UiButton play, sound, gear;
     private final ArtSheet art;
     private final TextureRegion title, glow;
     private float time;
 
-    public MainMenu(ArtSheet art, PointerTracker pt, Runnable onPlay, Runnable onSound, boolean soundOn) {
+    public MainMenu(ArtSheet art, PointerTracker pt, Runnable onPlay, Runnable onSound, Runnable onSettings, boolean soundOn) {
         this.art = art;
         layer = new UiLayer(pt);
         title = art.get("title"); glow = art.get("glow");
         play = layer.add(new UiButton("icon_play", 74f, onPlay).pill(120f));
         play.bg.set(0.99f, 0.74f, 0.25f, 1f); play.fg.set(1f, 1f, 1f, 1f);
+        gear = layer.add(new UiButton("icon_gear", 46f, onSettings));
         sound = layer.add(new UiButton(soundOn ? "icon_sound_on" : "icon_sound_off", 46f, onSound));
     }
 
@@ -32,6 +33,7 @@ public final class MainMenu {
         float w = ui.getWorldWidth(), h = ui.getWorldHeight();
         play.x = w * 0.5f; play.y = h * 0.20f;
         sound.x = w - 80f; sound.y = 80f;
+        gear.x = 80f; gear.y = 80f;
         layer.update(dt, ui);
     }
 

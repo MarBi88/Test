@@ -20,7 +20,8 @@
 | 15 Lichtkristalle (9 offen, 6 hinter Bäumen versteckt, per Flutfüllung als erreichbar geprüft), Sammeln mit Funkeln + Freude-Animation + Neugier in der Nähe, Sammelanzeige (Perlen-Leiste), Speicherung | ✔ |
 | 3 Tiere mit eigenem Verhalten, Reaktion auf Lumi und Interaktion (Taste E / Pfoten-Taste, Sprechblasen-Symbole statt Text) | ✔ |
 | 2 Rätsel (Blumenfolge, magische Steine + Ranken-Tor) mit Hinweisen bei Inaktivität | ✔ |
-| Musik, Ambiente, SFX, Einstellungen | **offen (Phase 4)** |
+| Musik (45-s-Loop, Spieluhr/Marimba, C-Dur-Pentatonik), Ambiente (Wind, Teich-Plätschern nach Abstand, zufälliges Vogelgezwitscher), Schritte (Gras/Weg), Sprung/Landung, Kristall, Tierlaute, Blumentöne (C/E/G), sanfter Fehlklang, Steine/Tor, Klick; leiser im Pausenmenü | ✔ (nur gemessen/geprüft, nicht abgehört – siehe TEST_REPORT) |
+| Einstellungen (Musik, Effekte, Fortschritt zurücksetzen per langem Drücken) | ✔ |
 
 ## Gameplay (umgesetzt, Phase 3)
 

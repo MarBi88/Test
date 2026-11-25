@@ -11,6 +11,8 @@ import game.lumi.input.PointerTracker;
 public final class UiLayer {
     public final Array<UiButton> buttons = new Array<>();
     private final PointerTracker pt;
+    /** Wird bei jedem ausgelösten Knopf aufgerufen (Klick-Ton). */
+    public static Runnable onFire;
     private UiButton pressed;
     private final Vector2 v = new Vector2();
 
@@ -31,7 +33,7 @@ public final class UiLayer {
             ui.unproject(v);
             UiButton fire = pressed;
             pressed = null;
-            if (fire.hit(v.x, v.y) && fire.action != null) fire.action.run();
+            if (fire.hit(v.x, v.y) && fire.action != null) { if (onFire != null) onFire.run(); fire.action.run(); }
         }
         for (UiButton b : buttons) { b.down = (b == pressed) && holding; b.update(dt); }
     }

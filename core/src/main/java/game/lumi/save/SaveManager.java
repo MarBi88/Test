@@ -35,6 +35,11 @@ public final class SaveManager {
     public void setFlags(String bits) { put(() -> prefs.putString("flags", bits)); flush(); }
 
     public boolean soundOn() { return prefs == null || prefs.getBoolean("sound", true); }
+    public boolean musicOn() { return prefs == null || prefs.getBoolean("music", true); }
+    public boolean fxOn() { return prefs == null || prefs.getBoolean("fx", true); }
+
+    public void setMusic(boolean on) { put(() -> prefs.putBoolean("music", on)); flush(); }
+    public void setFx(boolean on) { put(() -> prefs.putBoolean("fx", on)); flush(); }
 
     public void setSound(boolean on) { put(() -> prefs.putBoolean("sound", on)); flush(); }
 
@@ -42,7 +47,12 @@ public final class SaveManager {
         put(() -> { prefs.putFloat("x", x); prefs.putFloat("y", y); prefs.putBoolean("started", true); });
     }
 
-    public void newGame() { put(() -> prefs.clear()); flush(); }
+    /** Neues Spiel: Fortschritt löschen, Einstellungen (Ton, Musik, Effekte) behalten. */
+    public void newGame() {
+        boolean s = soundOn(), m = musicOn(), f = fxOn();
+        put(() -> { prefs.clear(); prefs.putBoolean("sound", s); prefs.putBoolean("music", m); prefs.putBoolean("fx", f); });
+        flush();
+    }
 
     private void put(Runnable r) {
         if (prefs == null) return;

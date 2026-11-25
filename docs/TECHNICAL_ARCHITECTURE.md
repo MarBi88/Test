@@ -58,6 +58,6 @@ Alle Sprites werden beim Start in **einen** 2048²-Atlas gezeichnet (`ArtSheet`)
 | Risiko | Stand |
 |---|---|
 | Browser-Autoplay blockiert Audio | Phase 4: Audio erst nach erster Interaktion starten (libGDX-GWT entsperrt AudioContext bei erster Eingabe, im Log bestätigt). |
-| Echte Audiodateien/Synthese im GWT-Backend | Offen (Phase 4). libGDX-GWT unterstützt keine Echtzeit-Synthese über `AudioDevice`; Plan: kleine, selbst erzeugte OGG/WAV-Dateien oder Web-Audio per JSNI. |
+| Audio im GWT-Backend | Gelöst: Klänge werden vorab per `tools/make_audio.py` erzeugt (MP3, ca. 640 KB gesamt) und über `Gdx.audio.newSound` (Web Audio) geladen. Auch Musik/Ambiente laufen als `Sound.loop` (lückenlos, live regelbar). Der AudioContext wird bei der ersten Eingabe entsperrt; `AudioManager.onUserInteraction()` startet danach die Schleifen. Spiellogik kennt kein Audio: sie legt Ereignisse in `GameWorld.sfx`, der Bildschirm gibt sie an den AudioManager weiter. |
 | Performance auf Tablets | Nicht auf echter Hardware gemessen. Gegenmaßnahme vorhanden: `ParticleSystem.quality` (dekorative Effekte zuerst reduzieren). |
 | Prozedurale Grafik erreicht nicht Studio-Qualität gemalter Assets | Austauschbare Struktur vorhanden (ASSET_GUIDE). |

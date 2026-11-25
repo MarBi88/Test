@@ -9,16 +9,17 @@ import game.lumi.input.PointerTracker;
 /** Dezentes Pausenmenü: Weiter, Zum Start, Ton. Nur Symbole. */
 public final class PauseMenu {
     public final UiLayer layer;
-    private final UiButton resume, home, sound;
+    private final UiButton resume, home, sound, gear;
     private final ArtSheet art;
     private float time;
 
-    public PauseMenu(ArtSheet art, PointerTracker pt, Runnable onResume, Runnable onHome, Runnable onSound, boolean soundOn) {
+    public PauseMenu(ArtSheet art, PointerTracker pt, Runnable onResume, Runnable onHome, Runnable onSound, Runnable onSettings, boolean soundOn) {
         this.art = art;
         layer = new UiLayer(pt);
         resume = layer.add(new UiButton("icon_play", 84f, onResume));
         resume.bg.set(0.99f, 0.74f, 0.25f, 1f); resume.fg.set(1f, 1f, 1f, 1f);
         home = layer.add(new UiButton("icon_home", 60f, onHome));
+        gear = layer.add(new UiButton("icon_gear", 50f, onSettings));
         sound = layer.add(new UiButton(soundOn ? "icon_sound_on" : "icon_sound_off", 60f, onSound));
     }
 
@@ -30,6 +31,7 @@ public final class PauseMenu {
         resume.x = w * 0.5f; resume.y = h * 0.5f;
         home.x = w * 0.5f - 200f; home.y = h * 0.5f - 10f;
         sound.x = w * 0.5f + 200f; sound.y = h * 0.5f - 10f;
+        gear.x = w * 0.5f; gear.y = h * 0.5f - 170f;
         layer.update(dt, ui);
     }
 

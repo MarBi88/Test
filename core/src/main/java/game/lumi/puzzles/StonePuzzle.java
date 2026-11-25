@@ -23,6 +23,7 @@ public final class StonePuzzle extends Puzzle {
                 s.lit = true;
                 w.particles.burst(s.screenX(), s.screenY() + 70f, 20, 0.75f, 0.55f, 1f);
                 w.lumi.cheer();
+                w.sfx("stone_on", 0.7f);
                 w.progressChanged = true;
                 if (litCount() == 3) open(w);
             }
@@ -31,6 +32,7 @@ public final class StonePuzzle extends Puzzle {
 
     private void open(GameWorld w) {
         solved = true;
+        w.sfx("gate_open", 0.8f);
         w.map.gateOpen = true;
         w.particles.burst(w.map.gateX(), w.map.gateY() + 60f, 40, 0.8f, 0.6f, 1f);
     }
