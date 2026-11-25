@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import game.lumi.art.ArtFactory;
 import game.lumi.art.ArtSheet;
 import game.lumi.audio.AudioManager;
+import game.lumi.input.PointerTracker;
 import game.lumi.save.SaveManager;
 import game.lumi.screens.GameScreen;
 import game.lumi.screens.MenuScreen;
@@ -22,6 +23,7 @@ public class LumiGame extends Game {
     public GameWorld world;
     public WorldRenderer renderer;
     public WorldCamera cam;
+    public final PointerTracker pointers = new PointerTracker();
 
     private MenuScreen menu;
     private GameScreen gameScreen;
@@ -29,6 +31,7 @@ public class LumiGame extends Game {
     @Override public void create() {
         Gdx.app.setLogLevel(com.badlogic.gdx.Application.LOG_INFO);
         long t0 = System.currentTimeMillis();
+        Gdx.input.setInputProcessor(pointers);
         batch = new SpriteBatch(2000);
         save = new SaveManager();
         audio = new AudioManager();
@@ -45,7 +48,7 @@ public class LumiGame extends Game {
         Gdx.app.log("Lumi", "Start abgeschlossen in " + (System.currentTimeMillis() - t0) + " ms");
     }
 
-    public void showMenu() { setScreen(menu); }
+    public void showMenu() { pointers.reset(); setScreen(menu); }
 
     public void startGame(boolean continueSaved) {
         if (continueSaved && save.hasGame()) {
@@ -56,12 +59,18 @@ public class LumiGame extends Game {
             world.resetPlayer(world.map.spawnX, world.map.spawnY);
         }
         cam.snapTo(world.player.screenX(), world.player.screenY());
+        pointers.reset();
         setScreen(gameScreen);
     }
 
     public void toggleSound() {
         audio.setEnabled(!audio.isEnabled());
         save.setSound(audio.isEnabled());
+    }
+
+    @Override public void render() {
+        super.render();
+        pointers.endFrame();
     }
 
     @Override public void pause() { if (save != null) save.flush(); super.pause(); }

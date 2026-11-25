@@ -22,7 +22,7 @@ public final class ArtFactory {
     public static final Color VIOLET = Painter.rgb(0x9B6BE0);
     public static final Color CREAM = Painter.rgb(0xFFF1D6);
 
-    public static final float TREE_ANCHOR = 15f; // Pixel vom unteren Rand bis zum Fußpunkt
+    public static final float TREE_ANCHOR = 24f; // Pixel vom unteren Rand bis zum Fußpunkt
     public static final int TREE_VARIANTS = 4, BUSH_VARIANTS = 3, FLOWER_VARIANTS = 8, TUFT_VARIANTS = 3,
             ROCK_VARIANTS = 3, TILE_VARIANTS = 4;
 
@@ -153,7 +153,7 @@ public final class ArtFactory {
         {
             Painter p = s.alloc("tree0", 340, 420);
             RandomXS128 r = new RandomXS128(101);
-            trunk(p, 170, 405, 250, 44, 28, tDark, tMid, tLight);
+            trunk(p, 170, 385, 250, 44, 28, tDark, tMid, tLight);
             canopy(p, r, 170, 170, 92, 58, 8, 66, Painter.rgb(0x1F6A45), Painter.rgb(0x2E8B4F), Painter.rgb(0x58AE50), Painter.rgb(0x8CCB55));
             blossoms(p, r, 170, 170, 100, 70, Painter.rgb(0xFFE27A), 9);
         }
@@ -161,7 +161,7 @@ public final class ArtFactory {
         {
             Painter p = s.alloc("tree1", 340, 420);
             RandomXS128 r = new RandomXS128(202);
-            trunk(p, 170, 405, 230, 34, 20, tDark, tMid, tLight);
+            trunk(p, 170, 385, 230, 34, 20, tDark, tMid, tLight);
             canopy(p, r, 170, 140, 70, 78, 7, 56, Painter.rgb(0x2C7A57), Painter.rgb(0x3F9A5C), Painter.rgb(0x6DBA5E), Painter.rgb(0x9AD66A));
             blossoms(p, r, 170, 140, 82, 92, Painter.rgb(0xC9A2F5), 16);
         }
@@ -169,7 +169,7 @@ public final class ArtFactory {
         {
             Painter p = s.alloc("tree2", 340, 420);
             RandomXS128 r = new RandomXS128(303);
-            trunk(p, 170, 405, 330, 30, 22, tDark, tMid, tLight);
+            trunk(p, 170, 385, 330, 30, 22, tDark, tMid, tLight);
             Color d = Painter.rgb(0x1D6B5F), m = Painter.rgb(0x2E8F73), l = Painter.rgb(0x57B68A), t = Painter.rgb(0x8FD9A8);
             for (int tier = 0; tier < 5; tier++) {
                 float cy = 330 - tier * 62f;
@@ -189,7 +189,7 @@ public final class ArtFactory {
         {
             Painter p = s.alloc("tree3", 340, 420);
             RandomXS128 r = new RandomXS128(404);
-            trunk(p, 170, 405, 260, 62, 40, tDark, tMid, tLight);
+            trunk(p, 170, 385, 260, 62, 40, tDark, tMid, tLight);
             canopy(p, r, 170, 178, 112, 62, 9, 70, Painter.rgb(0x3B7A3C), Painter.rgb(0x5C9B3E), Painter.rgb(0x93BF48), Painter.rgb(0xCBDD62));
             blossoms(p, r, 170, 178, 120, 74, Painter.rgb(0xFFF1B0), 8);
         }

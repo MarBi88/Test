@@ -22,6 +22,8 @@ public final class WorldRenderer {
     private final TextureRegion blob, shadow, glow, ring, ray, vignette;
     private final float[] verts = new float[40];
     private float time;
+    /** Entwickler-Hilfe: 0 Kacheln, 1 Bodenflecken, 2 Objekte, 3 Schatten ausblenden. */
+    public final boolean[] hide = new boolean[4];
 
     public WorldRenderer(ArtSheet art) {
         for (int i = 0; i < tiles.length; i++) tiles[i] = art.get("tile" + i);
@@ -44,7 +46,7 @@ public final class WorldRenderer {
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 int idx = j * n + i;
-                if (!map.tileActive[idx]) continue;
+                if (!map.tileActive[idx] || hide[0]) continue;
                 float sx = Iso.sx(i + 0.5f, j + 0.5f), sy = Iso.sy(i + 0.5f, j + 0.5f);
                 if (sx < L - 66f || sx > R + 66f || sy < B - 34f || sy > T + 34f) continue;
                 b.setPackedColor(map.tileTint[idx]);
@@ -57,7 +59,7 @@ public final class WorldRenderer {
         Array<WorldMap.Decal> decals = map.decals;
         for (int i = 0; i < decals.size; i++) {
             WorldMap.Decal d = decals.get(i);
-            if (d.sx + d.w * 0.5f < L || d.sx - d.w * 0.5f > R || d.sy + d.h * 0.5f < B || d.sy - d.h * 0.5f > T) continue;
+            if (hide[1] || d.sx + d.w * 0.5f < L || d.sx - d.w * 0.5f > R || d.sy + d.h * 0.5f < B || d.sy - d.h * 0.5f > T) continue;
             b.setPackedColor(d.colorBits);
             b.draw(blob, d.sx - d.w * 0.5f, d.sy - d.h * 0.5f, d.w, d.h);
         }
@@ -91,7 +93,7 @@ public final class WorldRenderer {
         Array<Decor> decor = map.decor;
         for (int i = 0; i < decor.size; i++) {
             Decor d = decor.get(i);
-            if (d.shadowW <= 0f || d.right < L || d.left > R || d.top < B || d.bottom > T) continue;
+            if (hide[3] || d.shadowW <= 0f || d.right < L || d.left > R || d.top < B || d.bottom > T) continue;
             b.setColor(1f, 1f, 1f, 0.8f * d.alpha);
             float sx = d.screenX(), sy = d.screenY();
             b.draw(shadow, sx - d.shadowW * 0.5f + d.shadowW * 0.10f, sy - d.shadowH * 0.5f - d.shadowH * 0.06f, d.shadowW, d.shadowH);
@@ -110,7 +112,7 @@ public final class WorldRenderer {
                         && overlapsCanopy(d, pl, pr, pb, pt);
                 d.alpha += ((hides ? 0.34f : 1f) - d.alpha) * fade;
             }
-            if (d.right < L || d.left > R || d.top < B || d.bottom > T) continue;
+            if (hide[2] || d.right < L || d.left > R || d.top < B || d.bottom > T) continue;
             drawDecor(b, d);
         }
         if (!playerDrawn) w.lumi.draw(b, pSX, pSY, p.z);

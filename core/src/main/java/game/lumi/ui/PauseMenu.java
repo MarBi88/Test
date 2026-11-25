@@ -4,16 +4,18 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import game.lumi.art.ArtSheet;
+import game.lumi.input.PointerTracker;
 
 /** Dezentes Pausenmenü: Weiter, Zum Start, Ton. Nur Symbole. */
 public final class PauseMenu {
-    public final UiLayer layer = new UiLayer();
+    public final UiLayer layer;
     private final UiButton resume, home, sound;
     private final ArtSheet art;
     private float time;
 
-    public PauseMenu(ArtSheet art, Runnable onResume, Runnable onHome, Runnable onSound, boolean soundOn) {
+    public PauseMenu(ArtSheet art, PointerTracker pt, Runnable onResume, Runnable onHome, Runnable onSound, boolean soundOn) {
         this.art = art;
+        layer = new UiLayer(pt);
         resume = layer.add(new UiButton("icon_play", 84f, onResume));
         resume.bg.set(0.99f, 0.74f, 0.25f, 1f); resume.fg.set(1f, 1f, 1f, 1f);
         home = layer.add(new UiButton("icon_home", 60f, onHome));

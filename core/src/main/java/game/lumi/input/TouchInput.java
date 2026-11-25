@@ -19,8 +19,7 @@ public final class TouchInput {
     /** true, sobald je ein Touch-Ereignis gesehen wurde → Bedienelemente einblenden. */
     public boolean used;
 
-    private final boolean[] wasDown = new boolean[5];
-    private final int[] role = new int[5]; // 0 keine, 1 Joystick, 2 Sprung, 3 Interaktion, 4 Pause
+    private final int[] role = new int[PointerTracker.MAX]; // 0 keine, 1 Joystick, 2 Sprung, 3 Interaktion, 4 Pause
     private final Vector2 v = new Vector2();
 
     public float jumpX, jumpY, actX, actY, pauseX, pauseY;
@@ -31,31 +30,30 @@ public final class TouchInput {
         pauseX = w - 72f; pauseY = h - 72f;
     }
 
-    public void update(Viewport ui) {
+    public void update(Viewport ui, PointerTracker pt) {
         jump = interact = pause = false;
         layout(ui.getWorldWidth(), ui.getWorldHeight());
         jumpHeld = interactHeld = false;
-        for (int i = 0; i < 5; i++) {
-            boolean down = Gdx.input.isTouched(i);
-            if (down) {
-                v.set(Gdx.input.getX(i), Gdx.input.getY(i));
+        for (int i = 0; i < PointerTracker.MAX; i++) {
+            if (pt.downEvt[i]) { // neuer Fingerkontakt
+                used = true;
+                v.set(pt.x[i], pt.y[i]);
                 ui.unproject(v);
-                if (!wasDown[i]) { // neuer Fingerkontakt
-                    used = true;
-                    role[i] = classify(v.x, v.y, ui);
-                    if (role[i] == 1) stick.begin(i, v.x, v.y);
-                    else if (role[i] == 2) jump = true;
-                    else if (role[i] == 3) interact = true;
-                    else if (role[i] == 4) pause = true;
-                }
-                if (role[i] == 1 && stick.pointer == i) stick.drag(v.x, v.y);
+                role[i] = classify(v.x, v.y, ui);
+                if (role[i] == 1) stick.begin(i, v.x, v.y);
+                else if (role[i] == 2) jump = true;
+                else if (role[i] == 3) interact = true;
+                else if (role[i] == 4) pause = true;
+            }
+            if (pt.down[i]) {
+                if (role[i] == 1 && stick.pointer == i) { v.set(pt.x[i], pt.y[i]); ui.unproject(v); stick.drag(v.x, v.y); }
                 if (role[i] == 2) jumpHeld = true;
                 if (role[i] == 3) interactHeld = true;
-            } else if (wasDown[i]) {
+            }
+            if (!pt.down[i] && role[i] != 0) { // losgelassen
                 if (role[i] == 1 && stick.pointer == i) stick.end();
                 role[i] = 0;
             }
-            wasDown[i] = down;
         }
     }
 

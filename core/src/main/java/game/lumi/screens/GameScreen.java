@@ -15,7 +15,7 @@ import game.lumi.ui.PauseMenu;
 public final class GameScreen extends ScreenAdapter {
     private final LumiGame game;
     private final ExtendViewport ui = new ExtendViewport(GameConfig.VIEW_W, GameConfig.VIEW_H);
-    private final InputManager input = new InputManager();
+    private final InputManager input;
     private final GameHUD hud;
     private final PauseMenu pauseMenu;
     private boolean paused;
@@ -24,8 +24,9 @@ public final class GameScreen extends ScreenAdapter {
 
     public GameScreen(LumiGame game) {
         this.game = game;
+        input = new InputManager(game.pointers);
         hud = new GameHUD(game.art);
-        pauseMenu = new PauseMenu(game.art, () -> setPaused(false), () -> { savePosition(); game.save.flush(); game.showMenu(); },
+        pauseMenu = new PauseMenu(game.art, game.pointers, () -> setPaused(false), () -> { savePosition(); game.save.flush(); game.showMenu(); },
                 () -> { game.toggleSound(); pauseMenu().setSound(game.audio.isEnabled()); }, game.audio.isEnabled());
     }
 
@@ -50,6 +51,8 @@ public final class GameScreen extends ScreenAdapter {
         dt = Math.min(dt, 1f / 20f);
         input.update(ui);
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F9)) debugAtlas = !debugAtlas;
+        for (int i = 0; i < 4; i++) if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F1 + i)) game.renderer.hide[i] = !game.renderer.hide[i];
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F8)) game.world.particles.quality = game.world.particles.quality > 0f ? 0f : 1f;
         if (input.pause) setPaused(!paused);
 
         if (!paused) {

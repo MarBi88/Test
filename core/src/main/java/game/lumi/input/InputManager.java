@@ -11,9 +11,13 @@ public final class InputManager {
     public float moveX, moveY;
     public boolean run, jump, interact, pause;
 
+    private final PointerTracker pointers;
+
+    public InputManager(PointerTracker pointers) { this.pointers = pointers; }
+
     public void update(Viewport ui) {
         desktop.update();
-        touch.update(ui);
+        touch.update(ui, pointers);
         float tx = touch.stick.outX, ty = touch.stick.outY;
         if (touch.stick.magnitude > 0f) {
             moveX = tx; moveY = ty;

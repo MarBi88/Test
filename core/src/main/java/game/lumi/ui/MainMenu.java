@@ -6,17 +6,19 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import game.lumi.art.ArtSheet;
+import game.lumi.input.PointerTracker;
 
 /** Startbildschirm: Titel + großer Spielen-Knopf + Ton-Schalter. Keine Textpassagen. */
 public final class MainMenu {
-    public final UiLayer layer = new UiLayer();
+    public final UiLayer layer;
     private final UiButton play, sound;
     private final ArtSheet art;
     private final TextureRegion title, glow;
     private float time;
 
-    public MainMenu(ArtSheet art, Runnable onPlay, Runnable onSound, boolean soundOn) {
+    public MainMenu(ArtSheet art, PointerTracker pt, Runnable onPlay, Runnable onSound, boolean soundOn) {
         this.art = art;
+        layer = new UiLayer(pt);
         title = art.get("title"); glow = art.get("glow");
         play = layer.add(new UiButton("icon_play", 74f, onPlay).pill(120f));
         play.bg.set(0.99f, 0.74f, 0.25f, 1f); play.fg.set(1f, 1f, 1f, 1f);

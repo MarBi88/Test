@@ -16,12 +16,13 @@ public final class MenuScreen extends ScreenAdapter {
     private final LumiGame game;
     private final ExtendViewport ui = new ExtendViewport(GameConfig.VIEW_W, GameConfig.VIEW_H);
     private final MainMenu menu;
-    private final InputManager noInput = new InputManager();
+    private final InputManager noInput;
     private float time;
 
     public MenuScreen(LumiGame game) {
         this.game = game;
-        menu = new MainMenu(game.art, () -> game.startGame(game.save.hasGame()), () -> { game.toggleSound(); menu().setSound(game.audio.isEnabled()); }, game.audio.isEnabled());
+        noInput = new InputManager(game.pointers);
+        menu = new MainMenu(game.art, game.pointers, () -> game.startGame(game.save.hasGame()), () -> { game.toggleSound(); menu().setSound(game.audio.isEnabled()); }, game.audio.isEnabled());
     }
 
     private MainMenu menu() { return menu; }
