@@ -19,15 +19,19 @@ import game.lumi.entities.Player;
  * Im Render-Loop werden keine Objekte angelegt.
  */
 public final class WorldRenderer {
+    private final ArtSheet art2;
+    private final TextureRegion stoneMagic, hintStone;
     private final TextureRegion[] tiles = new TextureRegion[ArtFactory.TILE_VARIANTS];
     private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
     private float time;
-    private final Entity[] dyn = new Entity[12];
+    private final Entity[] dyn = new Entity[32];
     /** Entwickler-Hilfe: 0 Kacheln, 1 Bodenflecken, 2 Objekte, 3 Schatten ausblenden. */
     public final boolean[] hide = new boolean[4];
 
     public WorldRenderer(ArtSheet art) {
+        art2 = art;
+        stoneMagic = art.get("stone_magic"); hintStone = art.get("hintstone");
         for (int i = 0; i < tiles.length; i++) tiles[i] = art.get("tile" + i);
         blob = art.get("blob"); shadow = art.get("shadow"); glow = art.get("glow"); ring = art.get("ui_ring");
         crystal = art.get("crystal"); ray = art.get("ray"); vignette = art.get("vignette");
@@ -107,6 +111,7 @@ public final class WorldRenderer {
         int dn = 0;
         dyn[dn++] = p;
         for (int i = 0; i < w.animals.size && dn < dyn.length; i++) dyn[dn++] = w.animals.get(i);
+        for (int i = 0; i < w.props.size && dn < dyn.length; i++) dyn[dn++] = w.props.get(i);
         for (int i = 1; i < dn; i++) {
             Entity e = dyn[i]; int j = i - 1;
             while (j >= 0 && dyn[j].depth() > e.depth()) { dyn[j + 1] = dyn[j]; j--; }
@@ -120,8 +125,12 @@ public final class WorldRenderer {
             float dd = d.depth();
             while (ci < cr.size && cr.get(ci).depth() <= dd) drawCrystal(b, cr.get(ci++), L, R, B, T);
             while (di < dn && dyn[di].depth() <= dd) drawDyn(b, w, dyn[di++]);
+            if (d.gate) {
+                d.alpha += ((map.gateOpen ? 0f : 1f) - d.alpha) * Math.min(1f, 1.4f * dt);
+                if (d.alpha < 0.03f) continue;
+            }
             if (d.occluder) {
-                boolean hides = dd > pDepth && dd < pDepth + 7f && d.left < pr && d.right > pl && d.top > pb && d.bottom < pt
+                boolean hides = dd > pDepth && dd < pDepth + 16f && d.left < pr && d.right > pl && d.top > pb && d.bottom < pt
                         && overlapsCanopy(d, pl, pr, pb, pt);
                 d.alpha += ((hides ? 0.34f : 1f) - d.alpha) * fade;
             }
@@ -138,6 +147,7 @@ public final class WorldRenderer {
         b.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         w.lumi.drawGlow(b, pSX, pSY, p.z, w.lumi.isBackView());
         drawWaterSparkles(b, map);
+        drawPuzzleGlows(b, w, L, R, B, T);
         for (int i = 0; i < cr.size; i++) drawCrystalGlow(b, cr.get(i), L, R, B, T);
         w.particles.drawGlows(b);
         drawLightShafts(b, cam);
@@ -153,8 +163,100 @@ public final class WorldRenderer {
         return pt > canopyBottom;
     }
 
+    private static final float[][] FC = { { 1f, 0.45f, 0.66f }, { 1f, 0.85f, 0.3f }, { 0.43f, 0.68f, 1f } };
+
+    private TextureRegion flowerGlow(int i) { return art2.get("flower_glow" + i); }
+
+    private void drawProp(SpriteBatch b, game.lumi.entities.PuzzleProp p) {
+        float sx = p.screenX(), sy = p.screenY();
+        float k = 1f;
+        b.setColor(1f, 1f, 1f, 0.8f);
+        b.draw(shadow, sx - 36f, sy - 12f, 72f, 26f);
+        TextureRegion r; float scale, anchor; float rot = 0f;
+        float a = p.litAmt;
+        switch (p.kind) {
+            case FLOWER:
+                r = flowerGlow(p.idx); scale = 0.95f; anchor = 8f;
+                if (p.wiggle > 0f) rot = MathUtils.sin(p.wiggle * 40f) * 14f * Math.min(1f, p.wiggle * 3f);
+                rot += MathUtils.sin(time * 1.6f + p.phase) * 2.5f;
+                // ungeleuchtet: gedämpft; leuchtend: volle Farbe
+                b.setColor(MathUtils.lerp(0.62f, 1f, a), MathUtils.lerp(0.68f, 1f, a), MathUtils.lerp(0.72f, 1f, a), 1f);
+                break;
+            case STONE: r = stoneMagic; scale = 0.9f; anchor = 10f; b.setColor(Color.WHITE); break;
+            default: r = hintStone; scale = 0.85f; anchor = 10f; b.setColor(Color.WHITE);
+        }
+        float w0 = r.getRegionWidth() * scale, h0 = r.getRegionHeight() * scale;
+        b.draw(r, sx - w0 / 2f, sy - anchor * scale, w0 / 2f, anchor * scale, w0, h0, 1f, 1f, rot);
+        b.setColor(Color.WHITE);
+    }
+
+    private void drawPuzzleGlows(SpriteBatch b, GameWorld w, float L, float R, float B, float T) {
+        for (int i = 0; i < w.props.size; i++) {
+            game.lumi.entities.PuzzleProp p = w.props.get(i);
+            float sx = p.screenX(), sy = p.screenY();
+            if (sx < L - 150f || sx > R + 150f || sy < B - 150f || sy > T + 150f) continue;
+            float pulse = 0.6f + 0.4f * MathUtils.sin(time * 2.4f + p.phase);
+            switch (p.kind) {
+                case FLOWER: {
+                    float[] c = FC[p.idx];
+                    float s = (50f + 26f * p.litAmt) * (0.9f + 0.15f * pulse);
+                    b.setColor(c[0], c[1], c[2], 0.10f + 0.50f * p.litAmt * pulse);
+                    b.draw(glow, sx - s, sy + 42f - s, s * 2f, s * 2f);
+                    break;
+                }
+                case STONE: {
+                    float s = 70f * (0.9f + 0.2f * pulse);
+                    b.setColor(0.7f, 0.5f, 1f, 0.06f + 0.55f * p.litAmt * pulse);
+                    b.draw(glow, sx - s, sy + 70f - s, s * 2f, s * 2f);
+                    b.setColor(0.9f, 0.8f, 1f, 0.85f * p.litAmt);
+                    b.draw(glow, sx - 16f, sy + 64f - 16f, 32f, 32f);
+                    break;
+                }
+                default:
+                    for (int k = 0; k < 3; k++) {
+                        float[] c = FC[k];
+                        boolean on = k < p.progress;
+                        float s = on ? 34f * (0.9f + 0.2f * pulse) : 22f;
+                        b.setColor(c[0], c[1], c[2], on ? 0.75f : 0.14f);
+                        b.draw(glow, sx + (k - 1) * 23f - s, sy + 40f - s, s * 2f, s * 2f);
+                    }
+            }
+        }
+        // Hinweis-Signal
+        if (w.hintTarget != null && w.hintTime > 0f) {
+            game.lumi.entities.PuzzleProp t = w.hintTarget;
+            float fadeH = Math.min(1f, w.hintTime), pulse = 0.5f + 0.5f * MathUtils.sin(time * 4f);
+            float s = 90f + 30f * pulse;
+            b.setColor(1f, 0.92f, 0.5f, 0.35f * fadeH);
+            b.draw(glow, t.screenX() - s, t.screenY() + 60f - s, s * 2f, s * 2f);
+            float ph = (time * 0.8f) % 1f;
+            b.setColor(1f, 0.95f, 0.65f, (1f - ph) * 0.6f * fadeH);
+            float rs = 60f + ph * 120f;
+            b.draw(ring, t.screenX() - rs / 2f, t.screenY() + 10f - rs / 4f, rs, rs * 0.5f);
+        }
+        // Tor-Orbs (zeigen, wie viele Steine leuchten) und Leuchten der geheimen Lichtung
+        WorldMap m = w.map;
+        float gx = m.gateX(), gy = m.gateY();
+        if (!m.gateOpen) {
+            int lit = w.stones.litCount();
+            for (int k = 0; k < 3; k++) {
+                float pulse = 0.6f + 0.4f * MathUtils.sin(time * 2.2f + k);
+                boolean on = k < lit;
+                float s = on ? 26f : 18f;
+                b.setColor(0.75f, 0.55f, 1f, on ? 0.45f + 0.4f * pulse : 0.14f);
+                b.draw(glow, gx + (k - 1) * 40f - s, gy + 140f - s, s * 2f, s * 2f);
+            }
+        }
+        float cx = Iso.sx(m.secretX, m.secretY), cy = Iso.sy(m.secretX, m.secretY);
+        float pulse = 0.5f + 0.5f * MathUtils.sin(time * 1.1f);
+        b.setColor(0.78f, 0.6f, 1f, (m.gateOpen ? 0.22f : 0.10f) + 0.08f * pulse);
+        b.draw(glow, cx - 260f, cy - 130f + 20f, 520f, 260f);
+        b.setColor(Color.WHITE);
+    }
+
     private void drawDyn(SpriteBatch b, GameWorld w, Entity e) {
         if (e == w.player) w.lumi.draw(b, w.player.screenX(), w.player.screenY(), w.player.z);
+        else if (e instanceof game.lumi.entities.PuzzleProp) drawProp(b, (game.lumi.entities.PuzzleProp) e);
         else w.animalArt.draw(b, (game.lumi.entities.Animal) e);
     }
 

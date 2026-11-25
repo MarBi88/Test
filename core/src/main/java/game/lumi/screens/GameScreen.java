@@ -52,6 +52,13 @@ public final class GameScreen extends ScreenAdapter {
         input.update(ui);
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F9)) debugAtlas = !debugAtlas;
         for (int i = 0; i < 4; i++) if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F1 + i)) game.renderer.hide[i] = !game.renderer.hide[i];
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F5)) { // Entwickler: zum nächsten Rätselteil teleportieren
+            game.lumi.entities.PuzzleProp t = null;
+            if (!game.world.flowers.solved) t = game.world.flowers.nextFlower();
+            else for (game.lumi.entities.PuzzleProp s : game.world.stones.stones) if (!s.lit) { t = s; break; }
+            if (t != null) { game.world.player.x = t.x + 0.25f; game.world.player.y = t.y + 0.25f; }
+        }
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F6)) game.cam.camera.zoom = game.cam.camera.zoom > 1f ? 1f : 2.6f; // Entwickler: Übersicht
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F8)) game.world.particles.quality = game.world.particles.quality > 0f ? 0f : 1f;
         if (input.pause) setPaused(!paused);
 

@@ -45,6 +45,14 @@ public final class WorldMap {
     public float pondX = CX + 11f, pondY = CY + 9.5f, pondRx = 4.6f, pondRy = 3.2f;
     private final FloatArray pathX = new FloatArray(), pathY = new FloatArray();
 
+    /** Geheime Lichtung (magischer Platz): von Büschen umringt, Zugang nur durch das Ranken-Tor. */
+    public static final float SECRET_R = 3.4f;
+    public final float secretX = CX + 9.5f, secretY = CY - 16f;
+    public final float gateAngle = MathUtils.atan2(3f, 2.5f);
+    public boolean gateOpen;
+    public final Array<Decor> gateDecor = new Array<>();
+    private final FloatArray gX = new FloatArray(), gY = new FloatArray();
+
     public float boundsMinX, boundsMaxX, boundsMinY, boundsMaxY;
 
     private final RandomXS128 rnd = new RandomXS128(2024);
@@ -91,12 +99,66 @@ public final class WorldMap {
 
     public boolean free(float x, float y, float radius) {
         if (!walkable(x, y)) return false;
+        if (!gateOpen) {
+            for (int i = 0; i < gX.size; i++) {
+                float ddx = x - gX.items[i], ddy = y - gY.items[i];
+                float rr = radius + 0.55f;
+                if (ddx * ddx + ddy * ddy < rr * rr) return false;
+            }
+        }
         for (int i = 0; i < obX.size; i++) {
             float ddx = x - obX.items[i], ddy = y - obY.items[i];
             float rr = radius + obR.items[i];
             if (ddx * ddx + ddy * ddy < rr * rr) return false;
         }
         return true;
+    }
+
+    /** Zusätzliches festes Hindernis (z. B. magischer Stein). Vor der Welt-Fertigstellung aufrufen oder direkt nutzen. */
+    public void addObstacle(float x, float y, float r) { obX.add(x); obY.add(y); obR.add(r); }
+
+    public boolean inSecret(float x, float y, float extra) {
+        float dx = x - secretX, dy = y - secretY;
+        float rr = SECRET_R + extra;
+        return dx * dx + dy * dy < rr * rr;
+    }
+
+    public float gateX() { return Iso.sx(secretX + MathUtils.cos(gateAngle) * SECRET_R, secretY + MathUtils.sin(gateAngle) * SECRET_R); }
+    public float gateY() { return Iso.sy(secretX + MathUtils.cos(gateAngle) * SECRET_R, secretY + MathUtils.sin(gateAngle) * SECRET_R); }
+
+    public void gateAlphaReset(boolean open) { for (Decor d : gateDecor) d.alpha = open ? 0f : 1f; }
+
+    private void buildSecretRing(Array<TextureRegion> bushes, Array<TextureRegion> rocks, Array<TextureRegion> trees, TextureRegion vine) {
+        float step = 0.28f;
+        int k = 0;
+        for (float a = gateAngle + 0.34f; a < gateAngle + MathUtils.PI2 - 0.34f; a += step, k++) {
+            float r = SECRET_R + rf(-0.05f, 0.05f);
+            float x = secretX + MathUtils.cos(a) * r, y = secretY + MathUtils.sin(a) * r;
+            Decor d;
+            switch (k % 4) {
+                case 1: d = add(rocks.get(k % rocks.size), x, y, 0.95f, 14f); d.solid = 0.42f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale; break;
+                case 3: d = add(trees.get(1), x, y, 0.62f, ArtFactory.TREE_ANCHOR); d.solid = 0.30f; d.sway = 4f; d.swaySpeed = rf(0.7f, 1f);
+                        d.shadowW = 200f * d.scale; d.shadowH = 90f * d.scale; d.occluder = true; break;
+                default: d = add(bushes.get(k % bushes.size), x, y, 1.15f, 16f); d.solid = 0.38f * d.scale; d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f);
+                        d.shadowW = 150f * d.scale; d.shadowH = 60f * d.scale;
+            }
+            d.tint = tintFor(x, y, 1.0f);
+            placed.add(new float[] { x, y, 0.4f });
+        }
+        // Ranken-Tor: sperrt die Lücke, bis alle drei Steine leuchten
+        float[] ga = { -0.2f, 0f, 0.2f };
+        for (float da : ga) {
+            float a = gateAngle + da;
+            float x = secretX + MathUtils.cos(a) * SECRET_R, y = secretY + MathUtils.sin(a) * SECRET_R;
+            Decor d = add(vine, x, y, 1.0f, 12f);
+            d.gate = true; d.sway = 3f; d.swaySpeed = rf(0.9f, 1.3f); d.shadowW = 150f; d.shadowH = 56f;
+            gateDecor.add(d);
+        }
+        float[] oa = { -0.27f, -0.09f, 0.09f, 0.27f };
+        for (float da : oa) {
+            float a = gateAngle + da;
+            gX.add(secretX + MathUtils.cos(a) * SECRET_R); gY.add(secretY + MathUtils.sin(a) * SECRET_R);
+        }
     }
 
     // ------------------------------------------------------------------ Weg
@@ -208,6 +270,9 @@ public final class WorldMap {
             float x = pathX.items[i] + rf(-0.15f, 0.15f), y = pathY.items[i] + rf(-0.15f, 0.15f);
             addDecal(decals, x, y, rf(0.65f, 0.9f), 1f, dirt, 0.50f, 0);
         }
+        // Magischer Platz: sanftes violettes Leuchten am Boden der geheimen Lichtung
+        addDecal(decals, secretX, secretY, 3.0f, 1f, Painter_rgb(0xB48CF0), 0.30f, 0);
+        addDecal(decals, secretX, secretY, 1.7f, 1f, Painter_rgb(0xE4D2FF), 0.35f, 0);
         // Teich: Ufer (Creme), Wasser (zwei Töne)
         Color shore = Painter_rgb(0xE9D9A8), w1 = Painter_rgb(0x3FB6C8), w2 = Painter_rgb(0x6FD6E0);
         addDecal(decals, pondX, pondY, pondRx + 0.9f, 1f, Painter_rgb(0x7FBF50), 0.5f, 0);
@@ -269,12 +334,13 @@ public final class WorldMap {
         Array<TextureRegion> rocks = art.family("rock");
         TextureRegion log = art.get("log0");
 
+        buildSecretRing(bushes, rocks, trees, art.get("vine"));
         // --- Bäume: erst dichter Waldrand, dann lichter Innenraum
         int tries = 0;
         while (tries++ < 6000) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
             float f = field(x, y);
-            if (f > 1.18f) continue;
+            if (f > 1.18f || inSecret(x, y, 0.9f)) continue;
             boolean rim = f > 0.80f;
             if (!rim && (nearSpawn(x, y, 7.5f) || distToPath(x, y) < 1.7f || inPond(x, y, 2.0f))) continue;
             if (rim && (distToPath(x, y) < 1.0f && f < 0.95f)) continue;
@@ -295,7 +361,7 @@ public final class WorldMap {
         tries = 0; int count = 0;
         while (tries++ < 3000 && count < 110) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
+            if (inSecret(x, y, 0.9f) || field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(bushes.get(rnd.nextInt(bushes.size)), x, y, rf(0.65f, 1.0f), 16f);
             d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f); d.tint = tintFor(x, y, 1.0f);
@@ -306,7 +372,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 2000 && count < 26) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
+            if (inSecret(x, y, 0.9f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(rocks.get(rnd.nextInt(rocks.size)), x, y, rf(0.55f, 0.95f), 14f);
             d.tint = tintFor(x, y, 1.0f); d.solid = 0.42f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale;
@@ -316,7 +382,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 1000 && count < 5) {
             float x = rf(6, N - 6), y = rf(6, N - 6);
-            if (field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
+            if (inSecret(x, y, 0.9f) || field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
             Decor d = add(log, x, y, rf(0.8f, 1.0f), 22f);
             d.tint = tintFor(x, y, 1.0f); d.solid = 0.55f * d.scale; d.shadowW = 190f * d.scale; d.shadowH = 56f * d.scale;
             placed.add(new float[] { x, y, 1.2f }); count++;
@@ -325,7 +391,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 2000 && count < 34) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
+            if (inSecret(x, y, 0.9f) || field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
             Decor d = add(mush.get(rnd.nextInt(mush.size)), x, y, rf(0.7f, 1.1f), 10f);
             d.tint = tintFor(x, y, 1.0f); d.shadowW = 50f * d.scale; d.shadowH = 20f * d.scale;
             count++;

@@ -3,7 +3,7 @@
 Ein liebevoll gestaltetes 2.5D-Browsergame für ein fünfjähriges Kind. Lumi, ein kleiner orangefarbener Fuchs,
 erkundet einen magischen Wald. Java + libGDX, im Browser lauffähig (kompiliert nach JavaScript).
 
-**Stand: Meilenstein 1 (Phase 0 + 1 + Teile von Phase 2) – spielbar im Browser.** Details in [docs/](docs/).
+**Stand: Phase 0–3 weitgehend umgesetzt (Welt, Lumi, 15 Kristalle, 3 Tiere, 2 Rätsel) – spielbar im Browser; Audio (Phase 4) und Feinschliff/QA (Phase 5) offen.** Details in [docs/](docs/).
 
 ## Starten
 
@@ -30,10 +30,12 @@ Tipp: Der GWT-Build dauert ca. 30–60 s; `-PgwtPretty` erzeugt lesbares JavaScr
 | Bewegen | WASD / Pfeiltasten | Finger links aufsetzen und ziehen (schwebender Joystick) |
 | Rennen | Shift | Joystick ganz ausschlagen |
 | Springen | Leertaste | große Taste unten rechts |
+| Interagieren (Tiere) | E | Pfoten-Taste (erscheint nur in Reichweite) |
+| Rätsel (Blumen, Steine) | Berühren, kein Knopf nötig | Berühren |
 | Pause | Esc / P | Knopf oben rechts |
 | Spiel starten | Klick auf Play / Enter | Tippen |
 
-Entwickler-Hilfen im Spiel: `F9` Atlas anzeigen, `F1`–`F4` Ebenen ausblenden (Kacheln, Bodenflecken, Objekte, Schatten), `F8` Partikel an/aus.
+Entwickler-Hilfen im Spiel: `F5` zum nächsten Rätselteil teleportieren, `F6` Übersichts-Zoom, `F9` Atlas anzeigen, `F1`–`F4` Ebenen ausblenden (Kacheln, Bodenflecken, Objekte, Schatten), `F8` Partikel an/aus.
 
 ## Projektstruktur
 

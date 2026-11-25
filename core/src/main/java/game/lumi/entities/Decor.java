@@ -22,6 +22,8 @@ public final class Decor extends Entity {
     /** Kann Lumi verdecken → wird bei Überlappung transparent. */
     public boolean occluder;
     public float alpha = 1f;
+    /** Teil des Ranken-Tors (verschwindet, wenn das Steinrätsel gelöst ist). */
+    public boolean gate;
     /** Bildschirm-Begrenzungsrechteck (für Culling und Verdeckungsprüfung), im Konstruktor-Aufruf finalize() gesetzt. */
     public float left, right, bottom, top;
 

@@ -43,10 +43,10 @@ public final class WorldCamera {
         camera.position.y = cminY < cmaxY ? MathUtils.clamp(camera.position.y, cminY, cmaxY) : (minY + maxY) * 0.5f;
     }
 
-    public float left() { return camera.position.x - camera.viewportWidth * 0.5f; }
-    public float right() { return camera.position.x + camera.viewportWidth * 0.5f; }
-    public float bottom() { return camera.position.y - camera.viewportHeight * 0.5f; }
-    public float top() { return camera.position.y + camera.viewportHeight * 0.5f; }
+    public float left() { return camera.position.x - camera.viewportWidth * 0.5f * camera.zoom; }
+    public float right() { return camera.position.x + camera.viewportWidth * 0.5f * camera.zoom; }
+    public float bottom() { return camera.position.y - camera.viewportHeight * 0.5f * camera.zoom; }
+    public float top() { return camera.position.y + camera.viewportHeight * 0.5f * camera.zoom; }
 
     public void resize(int w, int h) { viewport.update(w, h, false); }
 }

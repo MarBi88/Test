@@ -40,6 +40,7 @@ public final class ArtFactory {
         leaf(s);
         crystal(s);
         AnimalArt.build(s);
+        PuzzleArt.build(s);
         LumiArt.build(s);
         UiArt.build(s);
         s.finish();

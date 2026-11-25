@@ -35,7 +35,7 @@ public final class LumiCharacter {
     private float earTwitchTimer = 3f, earTwitch;
     private float happyTime;
     private float curiousTime;
-    private float interactTime;
+    private float interactTime, glanceTime, glanceX;
 
     public LumiCharacter(ArtSheet art) {
         body = art.get("lumi_body"); bodyBack = art.get("lumi_bodyBack");
@@ -49,6 +49,9 @@ public final class LumiCharacter {
 
     /** Freudige Reaktion (Hüpfer + glückliche Augen), z. B. beim Einsammeln. */
     public void cheer() { happyTime = 1.3f; }
+    /** Blick zur Seite (Hinweis): dir = -1 links, +1 rechts. */
+    public void glance(float dir, float seconds) { glanceX = dir; glanceTime = seconds; curiousTime = Math.max(curiousTime, seconds); }
+
     /** Kurzes Untersuchen/Anstupsen: Kopf senkt sich, Schwanz wedelt. */
     public void interact() { interactTime = 0.9f; }
 
@@ -64,6 +67,7 @@ public final class LumiCharacter {
         happyTime = Math.max(0f, happyTime - dt);
         curiousTime = Math.max(0f, curiousTime - dt);
         interactTime = Math.max(0f, interactTime - dt);
+        glanceTime = Math.max(0f, glanceTime - dt);
 
         boolean sleeping = p.state == Player.State.SLEEP;
         boolean walking = p.state == Player.State.WALK, running = p.state == Player.State.RUN;
@@ -132,6 +136,7 @@ public final class LumiCharacter {
         if (curiousTime > 0f) {
             tTilt += 12f * (p.facingX); tEar = Math.min(tEar, -3f); tHeadY += 3f; tLookY = 0.4f;
         }
+        if (glanceTime > 0f && idle) { tLookX = glanceX * 0.9f; tTilt = glanceX * 6f; }
         if (interactTime > 0f) {
             float u = 1f - interactTime / 0.9f;
             float nod = MathUtils.sin(u * MathUtils.PI);

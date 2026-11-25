@@ -10,6 +10,11 @@ import game.lumi.entities.Animal;
 import game.lumi.entities.Collectible;
 import game.lumi.entities.Decor;
 import game.lumi.entities.Player;
+import game.lumi.entities.PuzzleProp;
+import game.lumi.puzzles.FlowerPuzzle;
+import game.lumi.puzzles.Puzzle;
+import game.lumi.puzzles.StonePuzzle;
+import game.lumi.systems.HintSystem;
 import game.lumi.input.InputManager;
 import game.lumi.systems.AnimalSystem;
 import game.lumi.systems.CollectionSystem;
@@ -27,6 +32,14 @@ public final class GameWorld {
     public final ParticleSystem particles;
     public final Array<Collectible> crystals = new Array<>();
     public final Array<Animal> animals = new Array<>();
+    public final Array<PuzzleProp> props = new Array<>();
+    public final FlowerPuzzle flowers = new FlowerPuzzle();
+    public final StonePuzzle stones = new StonePuzzle();
+    public final Array<Puzzle> puzzles = new Array<>();
+    /** Aktueller Hinweis (leuchtendes Signal an einem ungelösten Rätselteil). */
+    public PuzzleProp hintTarget;
+    public float hintTime;
+    private final HintSystem hints = new HintSystem();
     public final AnimalCharacter animalArt;
     /** Nächstes interaktives Tier in Reichweite (oder null) – steuert Hinweis-Taste. */
     public Animal interactTarget;
@@ -44,11 +57,15 @@ public final class GameWorld {
         map = new WorldMap(art);
         lumi = new LumiCharacter(art);
         particles = new ParticleSystem(art);
+        placePuzzleProps();
         placeCrystals();
         animalArt = new AnimalCharacter(art);
         placeAnimals();
         for (Animal a : animals) com.badlogic.gdx.Gdx.app.log("Lumi", "Tier " + a.type + " bei " + a.x + "," + a.y);
         for (Collectible c : crystals) com.badlogic.gdx.Gdx.app.log("Lumi", "Kristall " + c.id + " bei " + c.x + "," + c.y + (c.hidden ? " (versteckt)" : ""));
+        for (PuzzleProp pr : props) com.badlogic.gdx.Gdx.app.log("Lumi", "Prop " + pr.kind + " " + pr.idx + " bei " + pr.x + "," + pr.y);
+        stones.bind(this);
+        puzzles.add(flowers); puzzles.add(stones);
         resetPlayer(map.spawnX, map.spawnY);
     }
 
@@ -89,11 +106,16 @@ public final class GameWorld {
     private void placeCrystals() {
         computeReach();
         RandomXS128 r = new RandomXS128(77);
+        // feste Kristalle: Belohnung des Blumenrätsels (erscheint erst nach dem Lösen) + 3 in der geheimen Lichtung
+        flowers.reward = add(flowerCx, flowerCy, false);
+        flowers.reward.active = false;
+        float[][] inner = { { -1.2f, 0.4f }, { 1.1f, 0.7f }, { 0.1f, -1.3f } };
+        for (float[] o : inner) add(map.secretX + o[0], map.secretY + o[1], false);
         int tries = 0;
-        while (crystals.size < 9 && tries++ < 5000) {
+        while (crystals.size < 10 && tries++ < 5000) {
             float x = map.spawnX + r.nextFloat() * 36f - 18f, y = map.spawnY + r.nextFloat() * 36f - 18f;
             float dx = x - map.spawnX, dy = y - map.spawnY;
-            if (dx * dx + dy * dy < 16f || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
+            if (dx * dx + dy * dy < 16f || map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
             add(x, y, false);
         }
         // hinter Bäumen: "oben" auf dem Bildschirm = kleinere Tiefe → x, y verkleinern
@@ -104,6 +126,7 @@ public final class GameWorld {
         for (Decor t : trees) {
             if (crystals.size >= CRYSTALS) break;
             float x = t.x - 0.95f, y = t.y - 0.95f;
+            if (map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f)) continue;
             if (!map.free(x, y, 0.45f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
             add(x, y, true);
         }
@@ -111,7 +134,7 @@ public final class GameWorld {
         tries = 0;
         while (crystals.size < CRYSTALS && tries++ < 5000) {
             float x = map.spawnX + r.nextFloat() * 36f - 18f, y = map.spawnY + r.nextFloat() * 36f - 18f;
-            if (map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 3f)) continue;
+            if (map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 3f)) continue;
             add(x, y, false);
         }
         crystals.sort((a, b) -> Float.compare(a.depth(), b.depth()));
@@ -148,10 +171,12 @@ public final class GameWorld {
         }
     }
 
-    /** Zwei Zeichen: Kaninchen gefüttert, Eichhörnchen hat gegraben. */
+    /** Zeichen 0/1: Kaninchen gefüttert, Eichhörnchen gegraben, Blumenrätsel gelöst, Stein 1–3 aktiviert. */
     public String flagsBits() {
         StringBuilder sb = new StringBuilder();
         for (Animal a : animals) if (a.type != Animal.Type.BIRD) sb.append(a.done ? '1' : '0');
+        sb.append(flowers.solved ? '1' : '0');
+        for (PuzzleProp st : stones.stones) sb.append(st.lit ? '1' : '0');
         return sb.toString();
     }
 
@@ -168,6 +193,65 @@ public final class GameWorld {
                 if (c.collected) a.done = true;
             }
         }
+        boolean fs = i < bits.length() && bits.charAt(i++) == '1';
+        if (flowers.reward != null && flowers.reward.collected) fs = true;
+        flowers.loadSolved(fs);
+        boolean[] lit = new boolean[3];
+        for (int k = 0; k < 3; k++) lit[k] = i < bits.length() && bits.charAt(i++) == '1';
+        stones.load(lit);
+        hintTarget = null; hintTime = 0f;
+    }
+
+    private float flowerCx, flowerCy;
+
+    private boolean nearProps(float x, float y, float d) {
+        for (PuzzleProp p : props) { float dx = p.x - x, dy = p.y - y; if (dx * dx + dy * dy < d * d) return true; }
+        return false;
+    }
+
+    private final float[] spotOut = new float[2];
+
+    /** Sucht spiralförmig einen freien, begehbaren Platz in Wunschnähe (nicht auf dem Weg, nicht in der geheimen Lichtung). */
+    private float[] spot(float x, float y, float clear) {
+        for (float r = 0f; r < 6f; r += 0.4f) {
+            for (int k = 0; k < 12; k++) {
+                float ang = k * 0.5236f + r * 1.3f;
+                float px = x + MathUtils.cos(ang) * r, py = y + MathUtils.sin(ang) * r;
+                if (map.free(px, py, clear) && map.field(px, py) < 0.8f && !map.inSecret(px, py, 2f) && map.distToPath(px, py) > 0.9f) {
+                    spotOut[0] = px; spotOut[1] = py; return spotOut;
+                }
+            }
+        }
+        spotOut[0] = x; spotOut[1] = y; return spotOut;
+    }
+
+    private PuzzleProp prop(PuzzleProp.Kind k, int idx, float x, float y) {
+        PuzzleProp p = new PuzzleProp(k, idx);
+        p.x = x; p.y = y; p.phase = MathUtils.random(MathUtils.PI2);
+        props.add(p);
+        return p;
+    }
+
+    /** Blumenrätsel nahe der Lichtung, drei magische Steine weit verteilt. */
+    private void placePuzzleProps() {
+        float[] f = spot(map.spawnX - 2f, map.spawnY - 7.5f, 1.8f);
+        flowerCx = f[0]; flowerCy = f[1];
+        int[] colorAtPos = { 2, 0, 1 }; // räumliche Reihenfolge ≠ Lösungsreihenfolge → man muss den Hinweisstein lesen
+        for (int i = 0; i < 3; i++) {
+            float a = i * 2.094f + 0.6f;
+            float[] q = spot(flowerCx + MathUtils.cos(a) * 1.6f, flowerCy + MathUtils.sin(a) * 1.6f, 0.45f);
+            flowers.flowers[i] = prop(PuzzleProp.Kind.FLOWER, colorAtPos[i], q[0], q[1]);
+        }
+        float[] h = spot(flowerCx + 2.6f, flowerCy + 2.6f, 0.9f);
+        flowers.hint.x = h[0]; flowers.hint.y = h[1];
+        props.add(flowers.hint);
+        map.addObstacle(h[0], h[1], 0.5f);
+        float[][] want = { { -10f, -3f }, { 3f, 10f }, { 11f, 1f } };
+        for (int i = 0; i < 3; i++) {
+            float[] q = spot(map.spawnX + want[i][0], map.spawnY + want[i][1], 0.8f);
+            stones.stones[i] = prop(PuzzleProp.Kind.STONE, i, q[0], q[1]);
+            map.addObstacle(q[0], q[1], 0.4f);
+        }
     }
 
     private boolean farFromOthers(float x, float y, float d) {
@@ -175,10 +259,11 @@ public final class GameWorld {
         return true;
     }
 
-    private void add(float x, float y, boolean hidden) {
+    private Collectible add(float x, float y, boolean hidden) {
         Collectible c = new Collectible();
         c.x = x; c.y = y; c.hidden = hidden; c.phase = MathUtils.random(MathUtils.PI2);
         crystals.add(c);
+        return c;
     }
 
     public int collectedCount() {
@@ -210,6 +295,8 @@ public final class GameWorld {
     public void update(float dt, InputManager in) {
         time += dt;
         movement.update(player, in, map, dt);
+        for (Puzzle pz : puzzles) pz.update(this, dt);
+        hints.update(this, dt);
         animalSystem.update(this, dt);
         interaction.update(this, in);
         if (collection.update(this, dt)) collectionChanged = true;

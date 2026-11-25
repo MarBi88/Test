@@ -24,9 +24,9 @@ Diagnose: im Spiel `F9` zeigt den ganzen Atlas.
 | Lumi | `lumi_body`, `_bodyBack`, `_head`, `_headBack`, `_muzzle`, `_eye`, `_eyeHappy`, `_blush`, `_ear`, `_earBack`, `_tail`, `_foot`, `_pendant` | fertig |
 | UI | `ui_circle/ring/pill/knob`, `icon_play/pause/sound_on/sound_off/home/jump/paw/crystal`, `title` | fertig |
 | Effekte | `glow`, `ray`, `vignette`, `leaf`, `white` | fertig |
-| Tiere | Kaninchen, Eichhörnchen, Vogel (je Idle/Hüpfen/Reaktion) | **offen (Phase 3)** |
-| Sammelobjekte | Lichtkristall (Glühen, Pulsieren), Sammel-Funkeln | **offen (Phase 3)** |
-| Rätsel | leuchtende Blumen (3 Farben), magische Steine, Weg-Freischaltung | **offen (Phase 3)** |
+| Tiere | `animal_rabbit`, `animal_squirrel`, `animal_bird`, `animal_wing` (Animation per Transformation) | fertig |
+| Sammelobjekte | `crystal`, Funkeln über Partikel | fertig |
+| Rätsel | `flower_glow0..2`, `hintstone`, `stone_magic`, `vine` (Tor), Sprechblasen `ui_bubble`, `icon_carrot/acorn/note/heart` | fertig |
 | Wasser | Bach, Wasserfall, Höhle | **offen (Phase 2)**; Teich ist fertig |
 
 ## Später gemalte Assets einsetzen
