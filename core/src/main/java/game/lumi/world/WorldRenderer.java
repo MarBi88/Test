@@ -22,7 +22,9 @@ public final class WorldRenderer {
     private final ArtSheet art2;
     private final TextureRegion stoneMagic, hintStone;
     private final TextureRegion[] fallFrames = new TextureRegion[4];
-    private final TextureRegion[] tiles = new TextureRegion[ArtFactory.TILE_VARIANTS];
+    private final TextureRegion[] tiles = new TextureRegion[ArtFactory.TILE_VARIANTS + ArtFactory.SAND_VARIANTS + ArtFactory.SEA_VARIANTS];
+    private final float[] glintX = new float[2400], glintY = new float[2400], glintA = new float[2400];
+    private int glints;
     private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
     private float time;
@@ -34,7 +36,9 @@ public final class WorldRenderer {
         art2 = art;
         for (int i = 0; i < 4; i++) fallFrames[i] = art.get("waterfall" + i);
         stoneMagic = art.get("stone_magic"); hintStone = art.get("hintstone");
-        for (int i = 0; i < tiles.length; i++) tiles[i] = art.get("tile" + i);
+        for (int i = 0; i < ArtFactory.TILE_VARIANTS; i++) tiles[i] = art.get("tile" + i);
+        for (int i = 0; i < ArtFactory.SAND_VARIANTS; i++) tiles[4 + i] = art.get("sand" + i);
+        for (int i = 0; i < ArtFactory.SEA_VARIANTS; i++) tiles[6 + i] = art.get("sea" + i);
         blob = art.get("blob"); shadow = art.get("shadow"); glow = art.get("glow"); ring = art.get("ui_ring");
         crystal = art.get("crystal"); ray = art.get("ray"); vignette = art.get("vignette");
     }
@@ -50,6 +54,7 @@ public final class WorldRenderer {
         b.setColor(Color.WHITE);
 
         // ---- Boden-Kacheln
+        glints = 0;
         final int n = WorldMap.N;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
@@ -58,7 +63,12 @@ public final class WorldRenderer {
                 float sx = Iso.sx(i + 0.5f, j + 0.5f), sy = Iso.sy(i + 0.5f, j + 0.5f);
                 if (sx < L - 66f || sx > R + 66f || sy < B - 34f || sy > T + 34f) continue;
                 b.setPackedColor(map.tileTint[idx]);
-                b.draw(tiles[map.tileVariant[idx]], sx - 66f, sy - 34f, 132f, 68f);
+                int tv = map.tileVariant[idx];
+                b.draw(tiles[tv], sx - 66f, sy - 34f, 132f, 68f);
+                if (WorldMap.isSea(tv) && glints < glintX.length) { // funkelnde Wellenspitzen (später additiv)
+                    float a = MathUtils.sin(time * 1.3f + i * 0.9f + j * 1.7f);
+                    if (a > 0.55f) { glintX[glints] = sx + MathUtils.sin(i * 3.1f + j) * 22f; glintY[glints] = sy + MathUtils.cos(j * 2.3f - i) * 8f; glintA[glints++] = (a - 0.55f) * 1.3f; }
+                }
             }
         }
         b.setColor(Color.WHITE);
@@ -71,6 +81,17 @@ public final class WorldRenderer {
             b.setPackedColor(d.colorBits);
             b.draw(blob, d.sx - d.w * 0.5f, d.sy - d.h * 0.5f, d.w, d.h);
         }
+
+        // ---- Brandung: pulsierender Schaum an der Küste
+        float[] fx = map.foamX, fy = map.foamY, fp = map.foamPhase;
+        for (int k = 0; k < fx.length; k++) {
+            if (fx[k] < L - 60f || fx[k] > R + 60f || fy[k] < B - 40f || fy[k] > T + 40f) continue;
+            float wv = 0.5f + 0.5f * MathUtils.sin(time * 1.2f + fp[k]);
+            b.setColor(1f, 1f, 1f, 0.22f + 0.34f * wv);
+            float sw = 70f + 26f * wv;
+            b.draw(blob, fx[k] - sw * 0.5f, fy[k] - sw * 0.14f + wv * 5f, sw, sw * 0.28f);
+        }
+        b.setColor(Color.WHITE);
 
         // ---- Wasser (sanft animiert)
         Array<WorldMap.Decal> water = map.waterDecals;
@@ -149,6 +170,7 @@ public final class WorldRenderer {
         // ---- Leuchteffekte (additiv)
         b.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         w.lumi.drawGlow(b, pSX, pSY, p.z, w.lumi.isBackView());
+        for (int g = 0; g < glints; g++) { b.setColor(1f, 1f, 1f, Math.min(0.7f, glintA[g])); b.draw(glow, glintX[g] - 8f, glintY[g] - 4f, 16f, 8f); }
         drawWaterSparkles(b, map);
         drawPuzzleGlows(b, w, L, R, B, T);
         drawWaterfallFx(b, w.map, L, R, B, T);

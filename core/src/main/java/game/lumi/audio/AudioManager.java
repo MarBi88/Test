@@ -15,17 +15,17 @@ import com.badlogic.gdx.utils.ObjectMap;
  */
 public final class AudioManager {
     public static final String[] NAMES = {
-        "music_loop", "wind_loop", "water_loop", "bird_a", "bird_b", "bird_c", "bird_call",
+        "music_loop", "wind_loop", "water_loop", "waves_loop", "bird_a", "bird_b", "bird_c", "bird_call",
         "step_grass0", "step_grass1", "step_grass2", "step_path0", "step_path1", "step_path2",
         "jump", "land", "collect", "lumi_happy", "rabbit", "squirrel", "dig", "feed",
         "flower0", "flower1", "flower2", "wrong", "stone_on", "gate_open", "click",
     };
-    private static final float MUSIC_VOL = 0.34f, WIND_VOL = 0.55f, WATER_VOL = 0.5f;
+    private static final float MUSIC_VOL = 0.34f, WIND_VOL = 0.55f, WATER_VOL = 0.5f, WAVES_VOL = 0.55f;
 
     private final ObjectMap<String, Sound> sounds = new ObjectMap<>();
     private boolean enabled = true, music = true, fx = true, started;
-    private long musicId = -1, windId = -1, waterId = -1;
-    private float birdTimer = 5f, duck = 1f, duckTarget = 1f, waterVol;
+    private long musicId = -1, windId = -1, waterId = -1, wavesId = -1;
+    private float birdTimer = 5f, duck = 1f, duckTarget = 1f, waterVol, wavesVol;
 
     public void load() {
         for (String n : NAMES) {
@@ -70,6 +70,8 @@ public final class AudioManager {
         if (!a && windId >= 0) { stopLoop("wind_loop", windId); windId = -1; }
         if (a && waterId < 0) waterId = startLoop("water_loop", 0f);
         if (!a && waterId >= 0) { stopLoop("water_loop", waterId); waterId = -1; }
+        if (a && wavesId < 0) wavesId = startLoop("waves_loop", 0f);
+        if (!a && wavesId >= 0) { stopLoop("waves_loop", wavesId); wavesId = -1; }
     }
 
     private void setVol(String name, long id, float v) {
@@ -80,10 +82,11 @@ public final class AudioManager {
     /**
      * Pro Frame aufrufen.
      * @param pondDist Abstand zum Teich in Kacheln (Wasserplätschern wird leiser)
+     * @param coast    0..1: Nähe zur Küste (Meeresrauschen wird lauter)
      * @param tweets   zufälliges Vogelgezwitscher erlauben (nur im laufenden Spiel)
      * @param quiet    leiser (Pausenmenü)
      */
-    public void update(float dt, float pondDist, boolean tweets, boolean quiet) {
+    public void update(float dt, float pondDist, float coast, boolean tweets, boolean quiet) {
         if (!started || !enabled) return;
         duckTarget = quiet ? 0.45f : 1f;
         duck += (duckTarget - duck) * Math.min(1f, 4f * dt);
@@ -95,11 +98,16 @@ public final class AudioManager {
             waterVol += (target - waterVol) * Math.min(1f, 3f * dt);
             setVol("water_loop", waterId, waterVol);
         }
+        if (wavesId >= 0) {
+            float target = coast * coast * WAVES_VOL * (quiet ? 0.5f : 1f) + 0.06f;
+            wavesVol += (target - wavesVol) * Math.min(1f, 3f * dt);
+            setVol("waves_loop", wavesId, wavesVol);
+        }
         if (tweets && fx) {
             birdTimer -= dt;
             if (birdTimer <= 0f) {
                 birdTimer = MathUtils.random(5f, 11f);
-                String[] b = { "bird_a", "bird_b", "bird_c" };
+                String[] b = { "bird_a", "bird_b", "bird_c" }; // Papageien und andere Tropenvögel
                 play(b[MathUtils.random(2)], MathUtils.random(0.12f, 0.24f));
             }
         }

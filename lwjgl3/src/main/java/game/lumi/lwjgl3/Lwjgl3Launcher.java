@@ -8,7 +8,7 @@ import game.lumi.LumiGame;
 public final class Lwjgl3Launcher {
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration cfg = new Lwjgl3ApplicationConfiguration();
-        cfg.setTitle("Lumi – Das Geheimnis des Zauberwaldes");
+        cfg.setTitle("Lumi – Das Geheimnis der Trauminsel");
         cfg.setWindowedMode(1280, 720);
         cfg.useVsync(true);
         cfg.setForegroundFPS(60);

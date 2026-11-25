@@ -112,7 +112,7 @@ public final class ParticleSystem {
             float pulse = 0.5f + 0.5f * MathUtils.sin(time * (1.6f + fSpeed[i]) + fPhase[i] * 3f);
             pulse *= pulse;
             float s = fSize[i] * (0.8f + pulse * 0.5f);
-            b.setColor(0.85f, 1f, 0.45f, 0.15f + pulse * 0.55f);
+            b.setColor(1f, 0.96f, 0.6f, 0.12f + pulse * 0.45f);
             b.draw(glow, fx[i] - s, fy[i] - s, s * 2f, s * 2f);
             b.setColor(1f, 1f, 0.85f, 0.35f + pulse * 0.6f);
             b.draw(glow, fx[i] - 3f, fy[i] - 3f, 6f, 6f);

@@ -68,10 +68,10 @@ def save(name, x, br='56k'):
 
 # ------------------------------------------------------------------ Musik
 def music():
-    bpm = 84; beat = 60 / bpm; bars = 16; total = bars * 4 * beat
+    bpm = 96; beat = 60 / bpm; bars = 16; total = bars * 4 * beat
     buf = np.zeros(int((total + 3) * SR))
-    chords = [(48, [60, 64, 67]), (45, [57, 60, 64]), (41, [57, 60, 65]), (43, [55, 59, 62])]  # C Am F G
-    penta = [60, 62, 64, 67, 69, 72, 74, 76]
+    chords = [(43, [55, 59, 62]), (40, [55, 59, 64]), (36, [55, 60, 64]), (38, [57, 62, 66])]  # G Em C D (sonnig, Insel-Feeling)
+    penta = [67, 69, 71, 74, 76, 79, 81, 83]
     r = np.random.default_rng(21)
     idx = 3
     for bar in range(bars):
@@ -80,13 +80,16 @@ def music():
         for k, nn in enumerate(notes): add(buf, pad(midi(nn - 12 + 12), 4 * beat + 0.5, 0.10), t0)
         for b8 in range(8):  # weiche Arpeggio-Basslinie
             add(buf, bell(midi(root + [0, 7, 12, 7][b8 % 4]), beat, 0.16, beat * 1.2, 0.2), t0 + b8 * beat * 0.5)
+        for b8 in range(8):  # Shaker auf den Achteln, Betonung auf der Zählzeit 'und'
+            sh = highpass(lowpass(r.standard_normal(int(0.05 * SR)), 2), 10) * env_ad(int(0.05 * SR), 0.003, 0.03, 5)
+            add(buf, sh, t0 + b8 * beat * 0.5 + (0.0 if b8 % 2 == 0 else 0.0)); buf[:0] += 0
         pos = 0.0
-        pattern = [1, 0.5, 0.5, 1, 1] if bar % 2 == 0 else [1.5, 0.5, 1, 1]
+        pattern = [0.75, 0.75, 0.5, 1, 1] if bar % 2 == 0 else [1.5, 0.5, 1, 0.5, 0.5]
         for dur in pattern:
             if pos >= 4: break
             if r.random() < 0.82:
                 idx = int(np.clip(idx + r.choice([-2, -1, 1, 1, 2]), 0, len(penta) - 1))
-                add(buf, bell(midi(penta[idx]), 1.4, 0.32, 1.1), t0 + pos * beat)
+                add(buf, bell(midi(penta[idx]), 0.9, 0.32, 0.55, 0.5), t0 + pos * beat)  # kurz, steeldrum-artig
             pos += dur
     n = int(total * SR)
     tail = buf[n:]; buf = buf[:n]; buf[:len(tail)] += tail[:len(buf)]  # Ausklang über den Loop-Anfang legen
@@ -98,6 +101,12 @@ def wind():
     x = lowpass(rng.standard_normal(n), 60) * 2.0 + lowpass(rng.standard_normal(n), 15) * 0.3
     mod = 0.55 + 0.30 * np.sin(2 * np.pi * t / 7.0) + 0.15 * np.sin(2 * np.pi * t / 3.5 + 1)
     save('wind_loop', norm(loopify(x * mod, int(2 * SR)), 0.35), '40k')
+
+def waves():
+    n = int(12 * SR) + int(2 * SR); t = np.arange(n) / SR
+    swell = (0.5 + 0.5 * np.sin(2 * np.pi * t / 6.0)) ** 2
+    x = lowpass(rng.standard_normal(n), 22) * 3.0 * (0.25 + swell) + highpass(lowpass(rng.standard_normal(n), 4), 30) * 0.5 * swell
+    save('waves_loop', norm(loopify(x, int(2 * SR)), 0.4), '48k')
 
 def water():
     n = int(8 * SR) + int(1 * SR)
@@ -136,7 +145,13 @@ def sfx():
     save('collect', norm(fadeio(buf, 0.002, 0.05), 0.7), '48k')
     buf = np.zeros(int(0.5 * SR)); add(buf, chirp(520, 780, 0.12, 0.8), 0); add(buf, chirp(640, 1040, 0.16, 0.8), 0.14)
     save('lumi_happy', norm(fadeio(buf), 0.55), '40k')
-    buf = np.zeros(int(0.3 * SR)); add(buf, chirp(900, 1500, 0.07, 0.9), 0); add(buf, chirp(1500, 1000, 0.1, 0.9), 0.07)
+    # Frosch: weiches, tiefes "Quak-Quak" (Grundton mit Obertönen, schnelle Amplitudenmodulation)
+    buf = np.zeros(int(0.6 * SR))
+    for k, (f0, f1, d) in enumerate([(150, 210, 0.16), (180, 250, 0.2)]):
+        t = t_(d); f = f0 + (f1 - f0) * t / d
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        tone = (np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.25 * np.sin(3 * ph)) * (0.65 + 0.35 * np.sin(2 * np.pi * 38 * t))
+        add(buf, tone * np.sin(np.pi * t / d) ** 0.8, 0.02 + k * 0.24)
     save('rabbit', norm(fadeio(buf), 0.5), '40k')
     buf = np.zeros(int(0.7 * SR))
     for k in range(5): add(buf, chirp(1800 + 200 * (k % 2), 2600, 0.04, 0.8, vib=150) + highpass(lowpass(rng.standard_normal(int(0.04 * SR)), 2), 8) * 0.3, k * 0.1)
@@ -163,7 +178,7 @@ def sfx():
     save('feed', norm(fadeio(buf), 0.55), '40k')
 
 if __name__ == '__main__':
-    music(); wind(); water()
+    music(); wind(); water(); waves()
     bird(1, 'bird_a', 3); bird(2, 'bird_b', 4, 3600); bird(3, 'bird_c', 2, 2800); bird(4, 'bird_call', 4, 3300, 1.0)
     sfx()
     print('fertig →', os.path.abspath(OUT))

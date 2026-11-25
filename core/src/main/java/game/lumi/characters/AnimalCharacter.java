@@ -18,7 +18,7 @@ public final class AnimalCharacter {
     }
 
     private static float height(Animal a) {
-        switch (a.type) { case RABBIT: return 100f; case SQUIRREL: return 112f; default: return 62f; }
+        switch (a.type) { case RABBIT: return 72f; case SQUIRREL: return 66f; default: return 62f; }
     }
 
     public void draw(SpriteBatch b, Animal a) {

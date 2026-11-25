@@ -13,6 +13,11 @@ Alle Grafiken entstehen beim Start per Code (`core/.../art`) in einem Atlas:
 
 Diagnose: im Spiel `F9` zeigt den ganzen Atlas.
 
+## Thema-Hinweis: Tropeninsel
+
+Aus historischen Gründen heißen manche Atlas-Namen noch wie im Waldprototyp, zeigen aber tropische Motive:
+`tree0` Kokospalme, `tree1` geneigte Palme, `tree2` Bananenstaude, `tree3` Flammenbaum; `bush*` tropische Sträucher mit Hibiskus-Blüten; `flower*` Hibiskus/Plumeria/Orchidee; `tuft*` Farn/Strandgras; `mushroom0` Fächermuschel, `mushroom1` Seestern; `rock*` Sandsteinbrocken; `log0` Treibholz; `animal_rabbit` Baumfrosch, `animal_squirrel` Krabbe, `animal_bird` Papagei; `icon_carrot` Mango, `icon_acorn` Muschel. Neu: `sand0..1`, `sea0..1` (Boden), Lumi = Katta (`lumi_patch` = Augenmaske).
+
 ## Asset-Plan (Namen im Atlas)
 
 | Gruppe | Namen | Status |

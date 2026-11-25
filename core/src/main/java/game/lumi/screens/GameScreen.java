@@ -94,9 +94,10 @@ public final class GameScreen extends ScreenAdapter {
             pauseMenu.update(dt, ui);
         }
         float pdx = game.world.player.x - game.world.map.pondX, pdy = game.world.player.y - game.world.map.pondY;
-        game.audio.update(dt, (float) Math.sqrt(pdx * pdx + pdy * pdy) - game.world.map.pondRx, !paused, paused);
+        float coast = com.badlogic.gdx.math.MathUtils.clamp((game.world.map.field(game.world.player.x, game.world.player.y) - 0.68f) / 0.22f, 0f, 1f);
+        game.audio.update(dt, (float) Math.sqrt(pdx * pdx + pdy * pdy) - game.world.map.pondRx, coast, !paused, paused);
 
-        Gdx.gl.glClearColor(0.06f, 0.16f, 0.12f, 1f);
+        Gdx.gl.glClearColor(0.09f, 0.5f, 0.66f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         game.cam.viewport.apply();
         game.renderer.render(game.batch, game.world, game.cam, paused ? 0f : dt);

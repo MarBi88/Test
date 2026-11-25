@@ -12,7 +12,7 @@ import game.lumi.config.GameConfig;
 import game.lumi.entities.Decor;
 
 /**
- * Der Zauberwald als Daten: organische Begehbarkeitsform, Bodenfarben, Weg, Teich, Dekoration.
+ * Der Trauminsel als Daten: organische Begehbarkeitsform, Bodenfarben, Weg, Teich, Dekoration.
  * Wird deterministisch (fester Seed) erzeugt, damit Position/Fortschritt im Speicherstand stimmen.
  */
 public final class WorldMap {
@@ -267,22 +267,35 @@ public final class WorldMap {
                 + 0.15f * MathUtils.sin((x + y) * 0.83f + 2f) + 0.10f * MathUtils.sin(x * 1.9f - y * 1.7f);
     }
 
+    /** Kachel-Varianten: 0–3 Wiese, 4–5 Sand, 6–7 Meer (flach/tief). */
+    public static boolean isSea(int variant) { return variant >= 6; }
+
     private void buildTiles() {
         float minSX = 1e9f, maxSX = -1e9f, minSY = 1e9f, maxSY = -1e9f;
         for (int j = 0; j < N; j++) {
             for (int i = 0; i < N; i++) {
                 int idx = j * N + i;
                 float f = field(i + 0.5f, j + 0.5f);
-                tileActive[idx] = f < 1.22f;
-                tileVariant[idx] = (int) (noise(i * 2.1f, j * 1.7f) * 40f) % ArtFactory.TILE_VARIANTS;
-                if (tileVariant[idx] < 0) tileVariant[idx] += ArtFactory.TILE_VARIANTS;
                 float n = noise(i, j);
-                float b = 0.86f + n * 0.26f;
-                // zur Mitte hin sonniger, zum Rand tiefer/dunkler
-                float depthF = MathUtils.clamp(f, 0f, 1.2f);
-                b *= 1.06f - depthF * 0.30f;
-                float warm = MathUtils.clamp(1f - depthF * 1.6f, 0f, 1f);
-                tmpC.set(b * (0.98f + warm * 0.07f), b * (1.0f + warm * 0.02f), b * (0.94f - warm * 0.02f + (n - 0.5f) * 0.1f), 1f);
+                float fj = f + (n - 0.5f) * 0.06f;           // ausgefranster Strand
+                tileActive[idx] = f < 1.7f;
+                int v = (int) (noise(i * 2.1f, j * 1.7f) * 40f);
+                if (v < 0) v = -v;
+                float b;
+                if (f > 0.93f) {                                // Meer
+                    tileVariant[idx] = f < 1.06f ? 6 : 7;
+                    b = MathUtils.clamp(1.04f - (f - 0.93f) * 0.55f, 0.6f, 1.05f) + (n - 0.5f) * 0.06f;
+                    tmpC.set(b, b, b, 1f);
+                } else if (fj > 0.84f) {                        // Sand
+                    tileVariant[idx] = 4 + v % ArtFactory.SAND_VARIANTS;
+                    b = 0.96f + n * 0.1f;
+                    tmpC.set(b, b * 0.99f, b * 0.95f, 1f);
+                } else {                                        // tropische Wiese
+                    tileVariant[idx] = v % ArtFactory.TILE_VARIANTS;
+                    b = 0.9f + n * 0.2f;
+                    float warm = MathUtils.clamp(1f - f * 1.3f, 0f, 1f);
+                    tmpC.set(b * (0.99f + warm * 0.05f), b, b * (0.93f + (n - 0.5f) * 0.1f), 1f);
+                }
                 tileTint[idx] = tmpC.toFloatBits();
                 if (f < 1.0f) {
                     float sx = Iso.sx(i + 0.5f, j + 0.5f), sy = Iso.sy(i + 0.5f, j + 0.5f);
@@ -292,6 +305,23 @@ public final class WorldMap {
             }
         }
         boundsMinX = minSX; boundsMaxX = maxSX; boundsMinY = minSY; boundsMaxY = maxSY;
+        buildFoam();
+    }
+
+    /** Schaumkrone entlang der Küstenlinie (Position in Bildschirmkoordinaten). */
+    public float[] foamX, foamY, foamPhase;
+
+    private void buildFoam() {
+        int n = 520;
+        foamX = new float[n]; foamY = new float[n]; foamPhase = new float[n];
+        for (int k = 0; k < n; k++) {
+            float a = k * MathUtils.PI2 / n;
+            float dx = MathUtils.cos(a), dy = MathUtils.sin(a);
+            float lim = 200f / field(CX + dx * 200f, CY + dy * 200f);
+            float r = lim * 0.935f;
+            foamX[k] = Iso.sx(CX + dx * r, CY + dy * r); foamY[k] = Iso.sy(CX + dx * r, CY + dy * r);
+            foamPhase[k] = a * 7f;
+        }
     }
 
     private void addDecal(Array<Decal> list, float wx, float wy, float wRadius, float flat, Color c, float alpha, int kind) {
@@ -308,21 +338,21 @@ public final class WorldMap {
     }
 
     private void buildGroundDecals() {
-        Color sun = Painter_rgb(0xFFE98A), lightGrass = Painter_rgb(0x9ED45A), darkGrass = Painter_rgb(0x2F7E4C),
-                dirt = Painter_rgb(0xC9A06A), dirtDark = Painter_rgb(0xB48655), moss = Painter_rgb(0x4D9A55);
+        Color sun = Painter_rgb(0xFFF0A0), lightGrass = Painter_rgb(0xB8E464), darkGrass = Painter_rgb(0x3E9A48),
+                dirt = Painter_rgb(0xF2DFAE), dirtDark = Painter_rgb(0xDDC590), moss = Painter_rgb(0x56AE55);
         // Sonnige Lichtung
         for (int i = 0; i < 6; i++) addDecal(decals, CX + rf(-2, 2), CY + rf(-2, 2), 4.5f + rf(0, 2.5f), 1f, sun, 0.16f, 0);
         // Flecken in Gras-Tönen für organische Bodenstruktur
         for (int i = 0; i < 560; i++) {
             float x = rf(4, N - 4), y = rf(4, N - 4);
             float f = field(x, y);
-            if (f > 1.15f) continue;
+            if (f > 0.84f) continue;
             boolean light = rnd.nextFloat() < 0.5f;
             addDecal(decals, x, y, rf(1.2f, 3.4f), 1f, light ? lightGrass : darkGrass, light ? 0.20f : 0.24f, 0);
         }
         for (int i = 0; i < 150; i++) {
             float x = rf(6, N - 6), y = rf(6, N - 6);
-            if (field(x, y) > 1.0f) continue;
+            if (field(x, y) > 0.82f) continue;
             addDecal(decals, x, y, rf(0.8f, 1.8f), 1f, moss, 0.30f, 0);
         }
         // Weg aus weichen Erdflecken
@@ -335,7 +365,7 @@ public final class WorldMap {
             addDecal(decals, x, y, rf(0.65f, 0.9f), 1f, dirt, 0.50f, 0);
         }
         // Bach und Becken (Ufer, dann Wasser – das Wasser schimmert animiert)
-        Color streamShore = Painter_rgb(0xC8E0A0), sw1 = Painter_rgb(0x4FC0D2), sw2 = Painter_rgb(0x8EE0EC);
+        Color streamShore = Painter_rgb(0xF4E6B8), sw1 = Painter_rgb(0x4FC0D2), sw2 = Painter_rgb(0x8EE0EC);
         for (int i = 0; i < stX.size; i++) addDecal(decals, stX.items[i], stY.items[i], 0.95f, 1f, streamShore, 0.55f, 0);
         for (int i = 0; i < stX.size; i++) addDecal(waterDecals, stX.items[i], stY.items[i], 0.62f, 1f, i % 2 == 0 ? sw1 : sw2, 0.95f, 1);
         addDecal(decals, cliffX + 1.5f, cliffY + 1.5f, 2.3f, 1f, streamShore, 0.7f, 0);
@@ -415,15 +445,15 @@ public final class WorldMap {
         while (tries++ < 12000) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
             float f = field(x, y);
-            if (f > 1.18f || inSecret(x, y, 2.6f) || nearCliff(x, y, 0.8f) || nearStream(x, y, 1.7f)) continue;
-            boolean rim = f > 0.86f;
+            if (f > 0.92f || inSecret(x, y, 2.6f) || nearCliff(x, y, 0.8f) || nearStream(x, y, 1.7f)) continue;
+            boolean rim = f > 0.80f;   // Strand: nur vereinzelte Palmen
             if (!rim && (nearSpawn(x, y, 9f) || distToPath(x, y) < 1.7f || inPond(x, y, 2.0f))) continue;
             if (rim && (distToPath(x, y) < 1.0f && f < 0.95f)) continue;
-            float gap = rim ? 2.6f : 5.4f;
+            float gap = rim ? 5.2f : 5.4f;
             if (!spaceFor(x, y, gap)) continue;
             int v = rnd.nextInt(trees.size);
-            if (rim && v == 1 && rnd.nextFloat() < 0.5f) v = 2;
-            float scale = rim ? rf(0.78f, 1.1f) : rf(0.58f, 0.9f);
+            if (rim) v = rnd.nextInt(2); // am Strand nur Palmen
+            float scale = rim ? rf(0.8f, 1.15f) : rf(0.6f, 0.95f);
             Decor d = add(trees.get(v), x, y, scale, ArtFactory.TREE_ANCHOR);
             d.sway = 5f * scale; d.swaySpeed = rf(0.6f, 0.95f);
             d.tint = tintFor(x, y, 1.0f);
@@ -436,7 +466,7 @@ public final class WorldMap {
         tries = 0; int count = 0;
         while (tries++ < 5000 && count < 85) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.84f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
             if (!spaceFor(x, y, 2.4f)) continue;
             Decor d = add(bushes.get(rnd.nextInt(bushes.size)), x, y, rf(0.65f, 1.0f), 16f);
             d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f); d.tint = tintFor(x, y, 1.0f);
@@ -447,7 +477,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 3000 && count < 30) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.9f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(rocks.get(rnd.nextInt(rocks.size)), x, y, rf(0.55f, 0.95f), 14f);
             d.tint = tintFor(x, y, 1.0f); d.solid = 0.32f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale;
@@ -466,7 +496,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 3000 && count < 46) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.92f || field(x, y) < 0.66f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
             Decor d = add(mush.get(rnd.nextInt(mush.size)), x, y, rf(0.7f, 1.1f), 10f);
             d.tint = tintFor(x, y, 1.0f); d.shadowW = 50f * d.scale; d.shadowH = 20f * d.scale;
             count++;
@@ -479,7 +509,7 @@ public final class WorldMap {
             int n = 6 + rnd.nextInt(10);
             for (int k = 0; k < n; k++) {
                 float x = cx + rf(-2.2f, 2.2f), y = cy + rf(-2.2f, 2.2f);
-                if (field(x, y) > 0.95f || inPond(x, y, 0.6f) || distToPath(x, y) < 0.5f) continue;
+                if (field(x, y) > 0.82f || inPond(x, y, 0.6f) || distToPath(x, y) < 0.5f) continue;
                 int v = rnd.nextFloat() < 0.65f ? kind : rnd.nextInt(flowers.size);
                 Decor d = add(flowers.get(v), x, y, rf(0.75f, 1.15f), 6f);
                 d.sway = 5f; d.swaySpeed = rf(1.1f, 1.8f); d.tint = tintFor(x, y, 1.02f);
@@ -490,7 +520,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 8000 && count < 700) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
-            if (field(x, y) > 1.0f || inPond(x, y, 0.2f) || distToPath(x, y) < 0.45f) continue;
+            if (field(x, y) > 0.92f || inPond(x, y, 0.2f) || distToPath(x, y) < 0.45f) continue;
             Decor d = add(tufts.get(rnd.nextInt(tufts.size)), x, y, rf(0.8f, 1.5f), 4f);
             d.sway = 7f; d.swaySpeed = rf(1.2f, 2.0f); d.tint = tintFor(x, y, 1.0f);
             count++;

@@ -84,6 +84,15 @@ Headless-libGDX mit gemocktem GL; die **echte** Welt wird gebaut (Grafik, Karte,
 | Echte Hardware (Laptop, Tablet) | **nicht gemessen** |
 | Gegenmaßnahme | `GameScreen.guardPerformance`: Bei dauerhaft > 28 ms pro Frame wird zuerst die Partikelmenge schrittweise reduziert (bis 15 %), bei gutem Lauf wieder erhöht |
 
+## Thema-Umbau: Tropeninsel + Katta (Ringelschwanz-Maki)
+
+| Test | Ergebnis |
+|---|---|
+| 16 automatisierte Tests nach dem Umbau (Erreichbarkeit, Rätsel, Tor, Kollision, Speicherstand) | ✔ alle bestanden |
+| Browser-Start, Screenshots: Maki-Lumi, Strand/Sand/Meer mit Schaum und Glitzern, Palmen, Frosch/Krabbe-Blasen, Übersicht der Insel | ✔ geprüft |
+| Neue Klänge (Tropen-Musik, Meeresrauschen nach Küstennähe, Frosch) | erzeugt und Pegel plausibel, **nicht abgehört** |
+| Speicherstand-Schlüssel auf `lumi_trauminsel_v1` umgestellt (alter Waldstand wird nicht übernommen) | ✔ |
+
 ## Gefundene und behobene Fehler
 
 1. GWT: `PreloaderBundle`-Fehler → Konfiguration `gdx.assetpath` ergänzt.

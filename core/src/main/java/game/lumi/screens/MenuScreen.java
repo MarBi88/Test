@@ -49,7 +49,7 @@ public final class MenuScreen extends ScreenAdapter {
             if (Gdx.input.isKeyJustPressed(Keys.ENTER) || Gdx.input.isKeyJustPressed(Keys.SPACE)) game.startGame(game.save.hasGame());
             menu.update(dt, ui);
         }
-        game.audio.update(dt, 99f, false, false);
+        game.audio.update(dt, 99f, 0.35f, false, false);
         // Kamera schwebt langsam über der Lichtung
         game.world.update(dt, noInput);
         float px = game.world.player.screenX() + MathUtils.sin(time * 0.25f) * 140f;
@@ -57,7 +57,7 @@ public final class MenuScreen extends ScreenAdapter {
         game.cam.follow(dt, px, py, 0f, 0f);
         game.world.particles.update(dt, game.cam.camera.position.x, game.cam.camera.position.y, game.cam.camera.viewportWidth, game.cam.camera.viewportHeight);
 
-        Gdx.gl.glClearColor(0.06f, 0.16f, 0.12f, 1f);
+        Gdx.gl.glClearColor(0.09f, 0.5f, 0.66f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         game.cam.viewport.apply();
         game.renderer.render(game.batch, game.world, game.cam, dt);

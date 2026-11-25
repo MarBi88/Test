@@ -1,4 +1,4 @@
-# LUMI – Das Geheimnis des Zauberwaldes
+# LUMI – Das Geheimnis der Trauminsel
 
 Ein liebevoll gestaltetes 2.5D-Browsergame für ein fünfjähriges Kind. Lumi, ein kleiner orangefarbener Fuchs,
 erkundet einen magischen Wald. Java + libGDX, im Browser lauffähig (kompiliert nach JavaScript).

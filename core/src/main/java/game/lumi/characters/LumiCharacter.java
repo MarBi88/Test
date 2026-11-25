@@ -18,7 +18,7 @@ public final class LumiCharacter {
     private static final float SCALE = 1.6f;
     private static final float INV_K = 1f / LumiArt.K;
 
-    private final TextureRegion body, bodyBack, head, headBack, muzzle, eye, eyeHappy, blush, ear, earBack, tail, foot, pendant, glow, shadow;
+    private final TextureRegion patch, body, bodyBack, head, headBack, muzzle, eye, eyeHappy, blush, ear, earBack, tail, foot, pendant, glow, shadow;
 
     // --- geglättete Pose
     private float bob, squashY = 1f, squashX = 1f;
@@ -41,7 +41,7 @@ public final class LumiCharacter {
         body = art.get("lumi_body"); bodyBack = art.get("lumi_bodyBack");
         head = art.get("lumi_head"); headBack = art.get("lumi_headBack");
         muzzle = art.get("lumi_muzzle"); eye = art.get("lumi_eye"); eyeHappy = art.get("lumi_eyeHappy");
-        blush = art.get("lumi_blush");
+        blush = art.get("lumi_blush"); patch = art.get("lumi_patch");
         ear = art.get("lumi_ear"); earBack = art.get("lumi_earBack");
         tail = art.get("lumi_tail"); foot = art.get("lumi_foot"); pendant = art.get("lumi_pendant");
         glow = art.get("glow"); shadow = art.get("shadow");
@@ -97,13 +97,13 @@ public final class LumiCharacter {
 
         // --- Zielwerte je Zustand
         float tBob = 0f, tSquashY = 1f, tSquashX = 1f, tHeadY = 0f, tTilt = 0f, tLookX = 0f, tLookY = 0f;
-        float tTail = 18f, tSwing = 7f, tEar = 6f, tLegs = 0f, tLean = 0f;
+        float tTail = 6f, tSwing = 5f, tEar = 6f, tLegs = 0f, tLean = 0f;
         float breathe = MathUtils.sin(time * 2.1f);
 
         if (idle || landing || sleeping) {
             tBob = breathe * 0.9f;
             tSquashY = 1f + breathe * 0.012f;
-            tSwing = 8f;
+            tSwing = 6f;
         }
         if (special > 0f) { // umschauen: links – rechts – Blick nach oben
             float s = special / 2.6f;
@@ -116,7 +116,7 @@ public final class LumiCharacter {
             tBob = Math.abs(MathUtils.sin(phase)) * (running ? 5.5f : 3.2f);
             tLegs = amp;
             tLean = running ? 9f : 3f;
-            tTail = running ? 48f : 24f;
+            tTail = running ? 26f : 10f;
             tSwing = running ? 6f : 10f;
             tEar = running ? 22f : 9f;
             tSquashY = 1f + MathUtils.sin(phase * 2f) * 0.025f * amp;
@@ -125,7 +125,7 @@ public final class LumiCharacter {
         if (air) {
             boolean up = p.vz > 0f;
             tSquashY = up ? 1.10f : 0.96f; tSquashX = up ? 0.93f : 1.04f;
-            tLegs = 0.2f; tEar = up ? -4f : 26f; tTail = up ? 34f : 8f; tSwing = 3f; tLean = 5f;
+            tLegs = 0.2f; tEar = up ? -4f : 26f; tTail = up ? 18f : 4f; tSwing = 3f; tLean = 5f;
             tHeadY = up ? 2f : 0f;
         }
         if (landing) {
@@ -148,11 +148,11 @@ public final class LumiCharacter {
         if (happyTime > 0f) {
             float h = happyTime / 1.3f;
             tBob = Math.abs(MathUtils.sin((1f - h) * MathUtils.PI * 4f)) * 9f * h;
-            tSwing = 24f; tTail = 30f; tEar = 18f;
+            tSwing = 16f; tTail = 8f; tEar = 14f;
         }
         if (sleeping) {
             tBob = -5f + breathe * 0.7f; tSquashY = 0.74f + breathe * 0.012f; tSquashX = 1.16f;
-            tHeadY = -17f; tTilt = -14f * p.facingX; tEar = -16f; tSwing = 3f; tTail = 70f;
+            tHeadY = -17f; tTilt = -14f * p.facingX; tEar = -16f; tSwing = 3f; tTail = 75f;
         }
 
         // --- Glättung
@@ -220,7 +220,7 @@ public final class LumiCharacter {
 
         // Schwanz (hinter dem Körper, seitlich nach außen/hinten geneigt)
         float sw = MathUtils.sin(time * 3.1f) * tailSwing + (happyBlend > 0.5f ? MathUtils.sin(time * 14f) * 10f : 0f);
-        float tailSide = showBack ? 17f : -21f;
+        float tailSide = showBack ? 8f : -19f;
         part(b, tail, ox, oy, tailSide - leanX * 0.5f, 10f + bob * 0.6f, (tailRot * 1.25f + sw) * (showBack ? -0.9f : 1f) + sleepBlend * 25f, 0, 0, 0.95f, 0.85f, tail.getRegionWidth() * INV_K * 0.5f, 6f);
 
         // hintere Füße
@@ -247,8 +247,8 @@ public final class LumiCharacter {
         TextureRegion earR_ = showBack ? earBack : ear;
         float eTwL = earTwitch > 0f ? MathUtils.sin(earTwitch / 0.35f * MathUtils.PI * 3f) * 16f : 0f;
         float pivotY = 5f;
-        part(b, earR_, ox, oy, hx - 21f + lookX * 1f, hy + 15f, 24f + earL + tilt * 0.4f, 0, 0, 1f, 1f, 16f, pivotY);
-        part(b, earR_, ox, oy, hx + 21f + lookX * 1f, hy + 15f, -24f - earR + eTwL + tilt * 0.4f, 0, 0, 1f, 1f, 16f, pivotY);
+        part(b, earR_, ox, oy, hx - 25f + lookX * 1f, hy + 10f, 12f + earL * 0.6f + tilt * 0.4f, 0, 0, 1f, 1f, 16f, pivotY);
+        part(b, earR_, ox, oy, hx + 25f + lookX * 1f, hy + 10f, -12f - earR * 0.6f + eTwL * 0.6f + tilt * 0.4f, 0, 0, 1f, 1f, 16f, pivotY);
 
         // Kopf
         TextureRegion headR = showBack ? headBack : head;
@@ -258,6 +258,9 @@ public final class LumiCharacter {
             float fx = hx + lookX * 5.5f, fy = hy + lookY * 2f;
             part(b, blush, ox, oy, fx - 24f, fy - 7f, 0, 0, 0, 1f, 1f, 12f, 8f);
             part(b, blush, ox, oy, fx + 24f, fy - 7f, 0, 0, 0, 1f, 1f, 12f, 8f);
+            // Augenmasken (schwarz, leicht nach außen geneigt) unter den Augen
+            part(b, patch, ox, oy, fx - 14.5f - lookX * 0.4f, fy + 2f + lookY * 1.5f, 18f, 0, 0, 1f, 1f, 15f, 18f);
+            part(b, patch, ox, oy, fx + 14.5f + lookX * 0.4f, fy + 2f + lookY * 1.5f, -18f, 0, 0, 1f, 1f, 15f, 18f);
             // Augen
             float eyeScaleY = MathUtils.lerp(1f, 0.08f, Math.max(blinkAmt, 1f - eyeOpen));
             float eyeDx = 14.5f + lookX * 0.8f;

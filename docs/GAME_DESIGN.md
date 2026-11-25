@@ -2,11 +2,15 @@
 
 **Zielgruppe:** fünfjähriges Kind. Keine Gewalt, kein Zeitdruck, keine Bestrafung, keine Werbung, keine Käufe, keine externen Links, kein Lesen nötig (Symbole statt Text).
 
-**Story:** Der Zauberwald hat Leuchtkraft verloren, Lichtkristalle sind verschwunden. Lumi erkundet den Wald, findet sie wieder und hilft den Tieren. Erzählt wird nur über kleine visuelle Ereignisse.
+**Setting:** Eine tropische Trauminsel im türkisen Meer: Sandstrand mit Brandung, Palmen, Bananenstauden, Flammenbäume, Lagune, Bach, Wasserfall mit Höhle, Muscheln und Seesterne am Strand.
 
-**Lumi:** orangefarbener Fuchs, cremefarbener Bauch, große Kulleraugen, große Ohren mit dunklen Spitzen, flauschiger Schwanz mit heller Spitze, leuchtender türkiser Anhänger.
+**Story:** Die Trauminsel hat ihre Leuchtkraft verloren, Lichtkristalle sind verschwunden. Lumi erkundet die Insel, findet sie wieder und hilft den Inselbewohnern. Erzählt wird nur über kleine visuelle Ereignisse.
 
-**Weltgröße:** 96×96 Kacheln (Fläche 2,25× des ersten Prototyps), bewusst licht bewachsen: Bäume stehen weit auseinander, nur ein schmaler, aufgelockerter Waldsaum am Rand; viel offene Wiese mit Blumen, Wegen, Teich, Bach.
+**Lumi:** ein Katta (Ringelschwanz-Maki): graues Fell, weißes Gesicht und Bauch, schwarze Augenmasken, große bernsteinfarbene Augen, schwarze Nase, runde Ohren, langer schwarz-weiß geringelter Schwanz, leuchtender türkiser Anhänger.
+
+**Inselbewohner:** Baumfrosch (hüpft, mit Mango zu füttern), Krabbe (huscht seitlich, buddelt auf Wunsch und enthüllt ihren Kristall), Papagei (fliegt zum versteckten Kristall und ruft). Im Code heißen die Typen aus Altgründen weiter RABBIT/SQUIRREL/BIRD.
+
+**Weltgröße:** 96×96 Kacheln, bewusst licht bewachsen: Palmen stehen vereinzelt, viel offene Tropenwiese mit Blumen, sandigen Wegen, Lagune, Bach. Das Meer umgibt die Insel; ins Wasser kann man nicht laufen.
 
 ## Umsetzungsstand
 
