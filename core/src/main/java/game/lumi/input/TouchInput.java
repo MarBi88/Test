@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import game.lumi.ui.VirtualJoystick;
 
 /**
- * Touch (und Maus als Zeiger): schwebender Joystick in der linken Bildschirmhälfte,
+ * Touch (und Maus als Zeiger): Wischen irgendwo auf dem Bildschirm steuert Lumi,
  * große Sprung- und Interaktionstaste rechts, Pause oben rechts.
  * Alle Koordinaten sind UI-Viewport-Koordinaten (y nach oben).
  */
@@ -61,7 +61,7 @@ public final class TouchInput {
         if (dist(x, y, pauseX, pauseY) < PAUSE_R + 16f) return 4;
         if (dist(x, y, jumpX, jumpY) < JUMP_R + 14f) return 2;
         if (dist(x, y, actX, actY) < ACT_R + 14f) return 3;
-        if (x < ui.getWorldWidth() * 0.5f && !stick.active) return 1;
+        if (!stick.active) return 1; // überall wischen = steuern (erster Finger)
         return 0;
     }
 

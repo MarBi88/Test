@@ -30,6 +30,10 @@ public final class SaveManager {
 
     public void setCrystals(String bits) { put(() -> prefs.putString("crystals", bits)); flush(); }
 
+    public String getEaten() { return prefs == null ? "" : prefs.getString("eaten", ""); }
+
+    public void setEaten(String v) { put(() -> prefs.putString("eaten", v)); }
+
     public String getFlags() { return prefs == null ? "" : prefs.getString("flags", ""); }
 
     public void setFlags(String bits) { put(() -> prefs.putString("flags", bits)); flush(); }

@@ -35,7 +35,7 @@ public final class LumiCharacter {
     private float earTwitchTimer = 3f, earTwitch;
     private float happyTime;
     private float curiousTime;
-    private float interactTime, glanceTime, glanceX;
+    private float interactTime, glanceTime, glanceX, eatTime;
 
     public LumiCharacter(ArtSheet art) {
         body = art.get("lumi_body"); bodyBack = art.get("lumi_bodyBack");
@@ -55,6 +55,9 @@ public final class LumiCharacter {
     /** Kurzes Untersuchen/Anstupsen: Kopf senkt sich, Schwanz wedelt. */
     public void interact() { interactTime = 0.9f; }
 
+    /** Leckerbissen gefangen: kurzes, genüssliches Mampfen (Maul kaut, Kopf wippt, Augen lächeln). */
+    public void eat() { eatTime = 0.95f; }
+
     /** Neugieriger Blick (Kopf neigen, Ohren aufrichten). */
     public void beCurious(float seconds) { curiousTime = Math.max(curiousTime, seconds); }
 
@@ -67,6 +70,7 @@ public final class LumiCharacter {
         happyTime = Math.max(0f, happyTime - dt);
         curiousTime = Math.max(0f, curiousTime - dt);
         interactTime = Math.max(0f, interactTime - dt);
+        eatTime = Math.max(0f, eatTime - dt);
         glanceTime = Math.max(0f, glanceTime - dt);
 
         boolean sleeping = p.state == Player.State.SLEEP;
@@ -142,6 +146,11 @@ public final class LumiCharacter {
             float nod = MathUtils.sin(u * MathUtils.PI);
             tHeadY -= 6f * nod; tTilt += 8f * p.facingX * nod; tSquashY = Math.min(tSquashY, 1f - 0.05f * nod);
             tSwing = 20f; tLookY = -0.5f;
+        }
+        if (eatTime > 0f) {
+            float chew = MathUtils.sin(time * 26f);
+            tHeadY += -1.5f * Math.abs(chew); tSquashX = Math.max(tSquashX, 1.03f); tTilt += 3f * chew;
+            tBob = Math.max(tBob, 0.8f * Math.abs(chew)); tSwing = Math.max(tSwing, 14f); tEar = Math.max(tEar, 10f);
         }
         float tSleep = sleeping ? 1f : 0f;
         float tHappy = happyTime > 0f ? 1f : 0f;
@@ -264,12 +273,12 @@ public final class LumiCharacter {
             // Augen
             float eyeScaleY = MathUtils.lerp(1f, 0.08f, Math.max(blinkAmt, 1f - eyeOpen));
             float eyeDx = 14.5f + lookX * 0.8f;
-            TextureRegion er = happyBlend > 0.5f ? eyeHappy : (sleepBlend > 0.6f ? eyeHappy : eye);
+            TextureRegion er = (happyBlend > 0.5f || eatTime > 0.25f) ? eyeHappy : (sleepBlend > 0.6f ? eyeHappy : eye);
             float sy2 = er == eye ? eyeScaleY : (sleepBlend > 0.6f ? -1f : 1f);
             part(b, er, ox, oy, fx - eyeDx, fy + 2f + lookY * 1.5f, 0, 0, 0, 1f, sy2, 13f, er == eye ? 15f : 15f);
             part(b, er, ox, oy, fx + eyeDx, fy + 2f + lookY * 1.5f, 0, 0, 0, 1f, sy2, 13f, 15f);
             // Schnauze
-            part(b, muzzle, ox, oy, fx + lookX * 2.5f, fy - 11f, 0, 0, 0, 1f, 1f, 20f, 15f);
+            part(b, muzzle, ox, oy, fx + lookX * 2.5f, fy - 11f, 0, 0, 0, 1f + (eatTime > 0f ? 0.06f * MathUtils.sin(time * 26f) : 0f), 1f + (eatTime > 0f ? 0.2f * MathUtils.sin(time * 26f) : 0f), 20f, 15f);
             // Anhänger auf der Brust
             part(b, pendant, ox, oy, leanX * 0.4f, bodyY + 4f - sleepBlend * 6f, 0, 0, 0, 1f, 1f, 10f, 24f);
         }

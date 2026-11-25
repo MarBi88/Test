@@ -40,6 +40,7 @@ public final class ArtFactory {
         leaf(s);
         crystal(s);
         AnimalArt.build(s);
+        CritterArt.build(s);
         PuzzleArt.build(s);
         cliff(s);
         waterfall(s);

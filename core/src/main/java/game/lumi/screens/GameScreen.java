@@ -75,6 +75,15 @@ public final class GameScreen extends ScreenAdapter {
             if (t != null) { game.world.player.x = t.x + 0.25f; game.world.player.y = t.y + 0.25f; }
         }
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F6)) game.cam.camera.zoom = game.cam.camera.zoom > 1f ? 1f : 4.2f; // Entwickler: Übersicht
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F7)) { // Entwickler: zur nächsten Beute teleportieren
+            game.lumi.entities.Critter best = null; float bd = 1e9f;
+            for (game.lumi.entities.Critter c : game.world.critters) {
+                if (!c.alive) continue;
+                float dx = c.x - game.world.player.x, dy = c.y - game.world.player.y, d = dx * dx + dy * dy;
+                if (d < bd) { bd = d; best = c; }
+            }
+            if (best != null) { game.world.player.x = best.x - 0.9f; game.world.player.y = best.y - 0.9f; }
+        }
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F8)) game.world.particles.quality = game.world.particles.quality > 0f ? 0f : 1f;
         if (input.pause) { if (settingsOpen) settingsOpen = false; else setPaused(!paused); }
 
@@ -86,6 +95,7 @@ public final class GameScreen extends ScreenAdapter {
                     game.cam.camera.viewportWidth, game.cam.camera.viewportHeight);
             game.save.setPosition(p.x, p.y);
             if (game.world.progressChanged) { game.world.progressChanged = false; game.save.setFlags(game.world.flagsBits()); }
+            if (game.world.eatChanged) { game.world.eatChanged = false; game.save.setEaten(game.world.eatenString()); }
             if (game.world.collectionChanged) { game.world.collectionChanged = false; game.save.setCrystals(game.world.collectedBits()); }
             game.save.tick(dt);
         } else if (settingsOpen) {
@@ -107,7 +117,7 @@ public final class GameScreen extends ScreenAdapter {
         game.batch.begin();
         game.renderer.drawVignette(game.batch, ui.getWorldWidth(), ui.getWorldHeight());
         if (paused) { if (settingsOpen) settings.draw(game.batch, ui); else pauseMenu.draw(game.batch, ui); }
-        else hud.draw(game.batch, input.touch, dt, game.world.collectedBits(), ui.getWorldHeight(), game.world.interactTarget != null);
+        else hud.draw(game.batch, input.touch, dt, game.world.collectedBits(), ui.getWorldHeight(), game.world.interactTarget != null, game.world.eaten);
         if (debugAtlas) {
             game.batch.setColor(0.2f, 0.2f, 0.25f, 1f);
             game.batch.draw(game.art.get("white"), 0, 0, ui.getWorldWidth(), ui.getWorldHeight());

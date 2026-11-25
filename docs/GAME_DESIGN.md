@@ -8,7 +8,11 @@
 
 **Lumi:** ein Katta (Ringelschwanz-Maki): graues Fell, weißes Gesicht und Bauch, schwarze Augenmasken, große bernsteinfarbene Augen, schwarze Nase, runde Ohren, langer schwarz-weiß geringelter Schwanz, leuchtender türkiser Anhänger.
 
-**Inselbewohner:** Baumfrosch (hüpft, mit Mango zu füttern), Krabbe (huscht seitlich, buddelt auf Wunsch und enthüllt ihren Kristall), Papagei (fliegt zum versteckten Kristall und ruft). Im Code heißen die Typen aus Altgründen weiter RABBIT/SQUIRREL/BIRD.
+**Inselbewohner:** Meeresschildkröte (watschelt, mit Mango zu füttern), Krabbe (huscht seitlich, buddelt auf Wunsch und enthüllt ihren Kristall), Papagei (fliegt zum versteckten Kristall und ruft). Im Code heißen die Typen aus Altgründen weiter RABBIT/SQUIRREL/BIRD.
+
+**Lumis Lieblingsessen:** Als Katta frisst Lumi am liebsten Insekten, Frösche und Spinnen (kindgerecht: sie verschwinden mit einem Funkeln, Lumi mampft genüsslich und freut sich). Auf der Insel krabbeln, hüpfen und flattern 16 Insekten (Marienkäfer, Schmetterlinge, Heuschrecken), 12 kleine Frösche (am Wasser) und 12 Spinnen (bei Bäumen). Sie sind langsamer als Lumi, weichen aber aus – Fangen ist ein Spiel, kein Frust. Wer berührt wird, ist gefangen; gefressene Tiere tauchen nach 25–45 s an anderer Stelle wieder auf. Drei Zähler (Symbol + Ziffern) zeigen, wie viele Lumi von jeder Sorte gefressen hat; alle 10 gibt es eine kleine Feier. Der Stand wird gespeichert. Der Inselbewohner „Schildkröte“ (fütterbar mit Mango) ist bewusst **kein** Futter.
+
+**Steuerung Touch:** Wischen irgendwo auf dem Bildschirm (kein Joystick); Richtung = vom Aufsetzpunkt zum Finger, der Anker zieht beim Weiterwischen nach.
 
 **Weltgröße:** 96×96 Kacheln, bewusst licht bewachsen: Palmen stehen vereinzelt, viel offene Tropenwiese mit Blumen, sandigen Wegen, Lagune, Bach. Das Meer umgibt die Insel; ins Wasser kann man nicht laufen.
 

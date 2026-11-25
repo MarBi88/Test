@@ -62,11 +62,13 @@ public class LumiGame extends Game {
             world.resetPlayer(save.getX(world.map.spawnX), save.getY(world.map.spawnY));
             world.loadCollected(save.getCrystals());
             world.loadFlags(save.getFlags());
+            world.loadEaten(save.getEaten());
         } else {
             save.newGame();
             world.resetPlayer(world.map.spawnX, world.map.spawnY);
             world.loadCollected("");
             world.loadFlags("");
+            world.loadEaten("");
         }
         cam.snapTo(world.player.screenX(), world.player.screenY());
         pointers.reset();
@@ -90,6 +92,7 @@ public class LumiGame extends Game {
         save.newGame();
         world.loadCollected("");
         world.loadFlags("");
+        world.loadEaten("");
         world.resetPlayer(world.map.spawnX, world.map.spawnY);
         cam.snapTo(world.player.screenX(), world.player.screenY());
     }

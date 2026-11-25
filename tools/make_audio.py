@@ -145,14 +145,19 @@ def sfx():
     save('collect', norm(fadeio(buf, 0.002, 0.05), 0.7), '48k')
     buf = np.zeros(int(0.5 * SR)); add(buf, chirp(520, 780, 0.12, 0.8), 0); add(buf, chirp(640, 1040, 0.16, 0.8), 0.14)
     save('lumi_happy', norm(fadeio(buf), 0.55), '40k')
-    # Frosch: weiches, tiefes "Quak-Quak" (Grundton mit Obertönen, schnelle Amplitudenmodulation)
+    # Schildkröte (Datei "rabbit"): weiches, tiefes "uuh" – freundlich, nicht schrill
+    t = t_(0.5); f = 190 + 70 * np.sin(np.pi * t / 0.5) * 0.6
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    tone = (np.sin(ph) + 0.35 * np.sin(2 * ph)) * np.sin(np.pi * t / 0.5) ** 1.3
+    save('rabbit', norm(fadeio(tone), 0.45), '40k')
+    # Mampfen: drei knusprige Bisse (gefiltertes Rauschen + dumpfer Schlag)
     buf = np.zeros(int(0.6 * SR))
-    for k, (f0, f1, d) in enumerate([(150, 210, 0.16), (180, 250, 0.2)]):
-        t = t_(d); f = f0 + (f1 - f0) * t / d
-        ph = 2 * np.pi * np.cumsum(f) / SR
-        tone = (np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.25 * np.sin(3 * ph)) * (0.65 + 0.35 * np.sin(2 * np.pi * 38 * t))
-        add(buf, tone * np.sin(np.pi * t / d) ** 0.8, 0.02 + k * 0.24)
-    save('rabbit', norm(fadeio(buf), 0.5), '40k')
+    for k in range(3):
+        n = int(0.07 * SR); tt = np.arange(n) / SR
+        crunch = highpass(lowpass(rng.standard_normal(n), 3), 14) * env_ad(n, 0.002, 0.05, 6) * 1.0
+        thump = np.sin(2 * np.pi * (170 - 600 * tt) * tt) * np.exp(-tt * 45) * 0.8
+        add(buf, crunch + thump, 0.02 + k * 0.15)
+    save('munch', norm(fadeio(buf), 0.6), '40k')
     buf = np.zeros(int(0.7 * SR))
     for k in range(5): add(buf, chirp(1800 + 200 * (k % 2), 2600, 0.04, 0.8, vib=150) + highpass(lowpass(rng.standard_normal(int(0.04 * SR)), 2), 8) * 0.3, k * 0.1)
     save('squirrel', norm(fadeio(buf), 0.5), '40k')

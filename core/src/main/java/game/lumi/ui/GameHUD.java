@@ -37,25 +37,48 @@ public final class GameHUD {
         b.setColor(Color.WHITE);
     }
 
-    public void draw(SpriteBatch b, TouchInput t, float dt, String bits, float uiH, boolean canInteract) {
+    private static final String[] CHIP_ICON = { "crit_ladybug", "crit_frog0", "crit_spider0" };
+
+    /** Zähler gefressener Beute: Symbol + Zahl (Ziffern aus dem Atlas), keine Schrift nötig. */
+    private void drawEaten(SpriteBatch b, int[] eaten, float uiH) {
+        float y = uiH - 28f - 64f - 70f, x = 28f;
+        for (int k = 0; k < 3; k++) {
+            int n = eaten[k];
+            int digits = n >= 100 ? 3 : n >= 10 ? 2 : 1;
+            float w = 78f + digits * 26f;
+            b.setColor(0.1f, 0.15f, 0.2f, 0.2f);
+            b.draw(art.get("ui_pill"), x + 2f, y - 4f, w, 56f);
+            b.setColor(1f, 0.95f, 0.82f, 0.88f);
+            b.draw(art.get("ui_pill"), x, y, w, 56f);
+            TextureRegion ic = art.get(CHIP_ICON[k]);
+            float is = 40f, ih = is * ic.getRegionHeight() / ic.getRegionWidth();
+            b.setColor(1f, 1f, 1f, 1f);
+            b.draw(ic, x + 14f, y + 28f - ih / 2f, is, ih);
+            b.setColor(0.36f, 0.3f, 0.22f, 1f);
+            String str = Integer.toString(n);
+            for (int i = 0; i < str.length(); i++) {
+                TextureRegion dg = art.get("digit" + (str.charAt(i) - '0'));
+                b.draw(dg, x + 62f + i * 26f, y + 12f, 24f, 38.4f);
+            }
+            x += w + 12f;
+        }
+        b.setColor(Color.WHITE);
+    }
+
+    public void draw(SpriteBatch b, TouchInput t, float dt, String bits, float uiH, boolean canInteract, int[] eaten) {
         time += dt;
         interactPop += ((canInteract ? 1f : 0f) - interactPop) * Math.min(1f, 10f * dt);
         drawCollection(b, bits, uiH);
+        drawEaten(b, eaten, uiH);
         boolean showTouch = GameConfig.touchDevice || t.used;
         if (showTouch) {
-            // Joystick (oder Hinweis-Ring an der Standardposition)
+            // Wischen: nur ein dezentes Leuchten unter dem Finger, kein Joystick
             if (t.stick.active) {
-                b.setColor(1f, 0.97f, 0.88f, 0.35f);
-                b.draw(circle, t.stick.baseX - 100f, t.stick.baseY - 100f, 200f, 200f);
-                b.setColor(1f, 0.97f, 0.88f, 0.75f);
-                b.draw(ring, t.stick.baseX - 100f, t.stick.baseY - 100f, 200f, 200f);
-                b.setColor(1f, 0.82f, 0.45f, 0.95f);
-                b.draw(knob, t.stick.knobX - 48f, t.stick.knobY - 48f, 96f, 96f);
-            } else {
-                b.setColor(1f, 0.97f, 0.88f, 0.28f);
-                b.draw(ring, 230f - 100f, 190f - 100f, 200f, 200f);
-                b.setColor(1f, 0.82f, 0.45f, 0.35f);
-                b.draw(knob, 230f - 48f, 190f - 48f, 96f, 96f);
+                float pulse = 1f + 0.06f * (float) Math.sin(time * 8f);
+                b.setColor(1f, 0.97f, 0.8f, 0.22f);
+                b.draw(circle, t.stick.knobX - 46f * pulse, t.stick.knobY - 46f * pulse, 92f * pulse, 92f * pulse);
+                b.setColor(1f, 0.97f, 0.8f, 0.45f);
+                b.draw(ring, t.stick.knobX - 30f, t.stick.knobY - 30f, 60f, 60f);
             }
             // Sprungtaste
             float s = t.jumpHeld ? 0.92f : 1f;

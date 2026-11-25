@@ -153,6 +153,10 @@ public final class WorldMap {
         return (float) Math.sqrt(best);
     }
 
+    public int streamCount() { return stX.size; }
+    public float streamX(int i) { return stX.items[i]; }
+    public float streamY(int i) { return stY.items[i]; }
+
     public boolean nearStream(float x, float y, float d) { return distToStream(x, y) < d; }
 
     /** Lumi steht im flachen Wasser (Bach oder Becken am Wasserfall). */

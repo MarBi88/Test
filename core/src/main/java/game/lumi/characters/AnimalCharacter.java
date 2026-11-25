@@ -18,7 +18,7 @@ public final class AnimalCharacter {
     }
 
     private static float height(Animal a) {
-        switch (a.type) { case RABBIT: return 72f; case SQUIRREL: return 66f; default: return 62f; }
+        switch (a.type) { case RABBIT: return 56f; case SQUIRREL: return 66f; default: return 62f; }
     }
 
     public void draw(SpriteBatch b, Animal a) {
@@ -42,8 +42,9 @@ public final class AnimalCharacter {
         if (a.mode == Animal.Mode.HOP) {
             float t = MathUtils.clamp(a.modeTime / 0.46f, 0f, 1f);
             float st = MathUtils.sin(t * MathUtils.PI);
-            scaleY = 1f + 0.14f * st; scaleX = 1f - 0.07f * st;
-            if (t < 0.12f || t > 0.88f) { scaleY = 0.88f; scaleX = 1.08f; } // Landung/Absprung
+            float soft = a.type == Animal.Type.RABBIT ? 0.3f : 1f; // Schildkröte watschelt nur
+            scaleY = 1f + 0.14f * st * soft; scaleX = 1f - 0.07f * st * soft;
+            if (a.type != Animal.Type.RABBIT && (t < 0.12f || t > 0.88f)) { scaleY = 0.88f; scaleX = 1.08f; } // Landung/Absprung
             rot = -a.facing * 10f * (t - 0.5f);
         } else if (a.mode == Animal.Mode.DIG) {
             offX = MathUtils.sin(a.anim * 38f) * 3f; scaleY = 0.9f + MathUtils.sin(a.anim * 19f) * 0.04f; rot = a.facing * (8f + MathUtils.sin(a.anim * 19f) * 4f);

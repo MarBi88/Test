@@ -28,7 +28,7 @@ public final class WorldRenderer {
     private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
     private float time;
-    private final Entity[] dyn = new Entity[32];
+    private final Entity[] dyn = new Entity[160];
     /** Entwickler-Hilfe: 0 Kacheln, 1 Bodenflecken, 2 Objekte, 3 Schatten ausblenden. */
     public final boolean[] hide = new boolean[4];
 
@@ -135,6 +135,12 @@ public final class WorldRenderer {
         dyn[dn++] = p;
         for (int i = 0; i < w.animals.size && dn < dyn.length; i++) dyn[dn++] = w.animals.get(i);
         for (int i = 0; i < w.props.size && dn < dyn.length; i++) dyn[dn++] = w.props.get(i);
+        for (int i = 0; i < w.critters.size && dn < dyn.length; i++) {
+            game.lumi.entities.Critter cr0 = w.critters.get(i);
+            if (!cr0.alive) continue;
+            float cx0 = cr0.screenX(), cy0 = cr0.screenY();
+            if (cx0 > L - 80f && cx0 < R + 80f && cy0 > B - 80f && cy0 < T + 80f) dyn[dn++] = cr0;
+        }
         for (int i = 1; i < dn; i++) {
             Entity e = dyn[i]; int j = i - 1;
             while (j >= 0 && dyn[j].depth() > e.depth()) { dyn[j + 1] = dyn[j]; j--; }
@@ -283,6 +289,7 @@ public final class WorldRenderer {
     private void drawDyn(SpriteBatch b, GameWorld w, Entity e) {
         if (e == w.player) w.lumi.draw(b, w.player.screenX(), w.player.screenY(), w.player.z);
         else if (e instanceof game.lumi.entities.PuzzleProp) drawProp(b, (game.lumi.entities.PuzzleProp) e);
+        else if (e instanceof game.lumi.entities.Critter) w.critterArt.draw(b, (game.lumi.entities.Critter) e);
         else w.animalArt.draw(b, (game.lumi.entities.Animal) e);
     }
 

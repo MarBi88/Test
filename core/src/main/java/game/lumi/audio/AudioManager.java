@@ -18,7 +18,7 @@ public final class AudioManager {
         "music_loop", "wind_loop", "water_loop", "waves_loop", "bird_a", "bird_b", "bird_c", "bird_call",
         "step_grass0", "step_grass1", "step_grass2", "step_path0", "step_path1", "step_path2",
         "jump", "land", "collect", "lumi_happy", "rabbit", "squirrel", "dig", "feed",
-        "flower0", "flower1", "flower2", "wrong", "stone_on", "gate_open", "click",
+        "flower0", "flower1", "flower2", "munch", "wrong", "stone_on", "gate_open", "click",
     };
     private static final float MUSIC_VOL = 0.34f, WIND_VOL = 0.55f, WATER_VOL = 0.5f, WAVES_VOL = 0.55f;
 

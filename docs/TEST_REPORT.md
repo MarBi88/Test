@@ -93,6 +93,15 @@ Headless-libGDX mit gemocktem GL; die **echte** Welt wird gebaut (Grafik, Karte,
 | Neue Klänge (Tropen-Musik, Meeresrauschen nach Küstennähe, Frosch) | erzeugt und Pegel plausibel, **nicht abgehört** |
 | Speicherstand-Schlüssel auf `lumi_trauminsel_v1` umgestellt (alter Waldstand wird nicht übernommen) | ✔ |
 
+## Wisch-Steuerung und Beutetiere
+
+| Test | Ergebnis |
+|---|---|
+| 23 automatisierte Tests (neu: Beutetiere vorhanden/auf der Insel, Fressen + Zähler, Respawn, Ausweichen langsamer als Lumi, kein Verlassen der Insel in 3000 Schritten, Zählerstand-Rundreise, Wisch-Anker folgt dem Finger) | ✔ alle bestanden |
+| Emuliertes Tablet: Wischen auf der **rechten** Bildschirmhälfte steuert Lumi, Richtungswechsel ohne Absetzen, nur dezenter Finger-Ring, kein Joystick | ✔ Screenshots |
+| Fressen im Browser (Dev-Taste F7 teleportiert zur Beute): Zähler steigt, `eaten` im LocalStorage (`0,0,1`) | ✔ |
+| Kauen-Animation, Mampf-Klang | Animation per Screenshot-Stichprobe; **Klang nicht abgehört** |
+
 ## Gefundene und behobene Fehler
 
 1. GWT: `PreloaderBundle`-Fehler → Konfiguration `gdx.assetpath` ergänzt.

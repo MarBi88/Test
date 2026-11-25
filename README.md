@@ -30,8 +30,8 @@ Tipp: Der GWT-Build dauert ca. 30–60 s; `-PgwtPretty` erzeugt lesbares JavaScr
 
 | | Desktop | Tablet |
 |---|---|---|
-| Bewegen | WASD / Pfeiltasten | Finger links aufsetzen und ziehen (schwebender Joystick) |
-| Rennen | Shift | Joystick ganz ausschlagen |
+| Bewegen | WASD / Pfeiltasten | Wischen: Finger irgendwo aufsetzen und in die gewünschte Richtung ziehen (kein Joystick) |
+| Rennen | Shift | weit wischen |
 | Springen | Leertaste | große Taste unten rechts |
 | Interagieren (Tiere) | E | Pfoten-Taste (erscheint nur in Reichweite) |
 | Rätsel (Blumen, Steine) | Berühren, kein Knopf nötig | Berühren |
@@ -40,7 +40,7 @@ Tipp: Der GWT-Build dauert ca. 30–60 s; `-PgwtPretty` erzeugt lesbares JavaScr
 
 Ton: Musik, Vogelgezwitscher, Wind, Teich-Plätschern, Schritte (Gras/Weg), Sammel-, Tier- und Rätselklänge. Zahnrad im Start-/Pausenmenü: Musik an/aus, Effekte an/aus, Fortschritt zurücksetzen (Knopf 2 s halten). Die Klänge entstehen per `python3 tools/make_audio.py` (numpy + ffmpeg) in `core/assets/audio/`.
 
-Entwickler-Hilfen im Spiel: `F5` zum nächsten Rätselteil teleportieren, `F6` Übersichts-Zoom, `F9` Atlas anzeigen, `F1`–`F4` Ebenen ausblenden (Kacheln, Bodenflecken, Objekte, Schatten), `F8` Partikel an/aus.
+Entwickler-Hilfen im Spiel: `F5` zum nächsten Rätselteil teleportieren, `F7` zur nächsten Beute, `F6` Übersichts-Zoom, `F9` Atlas anzeigen, `F1`–`F4` Ebenen ausblenden (Kacheln, Bodenflecken, Objekte, Schatten), `F8` Partikel an/aus.
 
 ## Projektstruktur
 

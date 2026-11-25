@@ -6,6 +6,9 @@ import com.badlogic.gdx.utils.Array;
 import game.lumi.art.ArtSheet;
 import game.lumi.characters.LumiCharacter;
 import game.lumi.characters.AnimalCharacter;
+import game.lumi.characters.CritterCharacter;
+import game.lumi.entities.Critter;
+import game.lumi.systems.CritterSystem;
 import game.lumi.entities.Animal;
 import game.lumi.entities.Collectible;
 import game.lumi.entities.Decor;
@@ -41,6 +44,12 @@ public final class GameWorld {
     public float hintTime;
     private final HintSystem hints = new HintSystem();
     public final AnimalCharacter animalArt;
+    public final CritterCharacter critterArt;
+    /** Beutetiere und wie viele davon Lumi gefressen hat: Insekten, Frösche, Spinnen. */
+    public final Array<Critter> critters = new Array<>();
+    public final int[] eaten = new int[3];
+    public boolean eatChanged;
+    private final CritterSystem critterSystem = new CritterSystem();
     /** Nächstes interaktives Tier in Reichweite (oder null) – steuert Hinweis-Taste. */
     public Animal interactTarget;
     public float time;
@@ -64,11 +73,13 @@ public final class GameWorld {
         placePuzzleProps();
         placeCrystals();
         animalArt = new AnimalCharacter(art);
+        critterArt = new CritterCharacter(art);
         placeAnimals();
         for (Animal a : animals) com.badlogic.gdx.Gdx.app.log("Lumi", "Tier " + a.type + " bei " + a.x + "," + a.y);
         for (Collectible c : crystals) com.badlogic.gdx.Gdx.app.log("Lumi", "Kristall " + c.id + " bei " + c.x + "," + c.y + (c.hidden ? " (versteckt)" : ""));
         for (PuzzleProp pr : props) com.badlogic.gdx.Gdx.app.log("Lumi", "Prop " + pr.kind + " " + pr.idx + " bei " + pr.x + "," + pr.y);
         stones.bind(this);
+        placeCritters();
         puzzles.add(flowers); puzzles.add(stones);
         resetPlayer(map.spawnX, map.spawnY);
     }
@@ -271,6 +282,25 @@ public final class GameWorld {
         return c;
     }
 
+    private void placeCritters() {
+        com.badlogic.gdx.math.RandomXS128 r = new com.badlogic.gdx.math.RandomXS128(909);
+        for (int i = 0; i < 16; i++) critters.add(new Critter(Critter.INSECT, i % 3));
+        for (int i = 0; i < 12; i++) critters.add(new Critter(Critter.FROG, i % 2));
+        for (int i = 0; i < 12; i++) critters.add(new Critter(Critter.SPIDER, i % 2));
+        for (Critter c : critters) critterSystem.place(this, c, r, false);
+    }
+
+    public int totalEaten() { return eaten[0] + eaten[1] + eaten[2]; }
+
+    public String eatenString() { return eaten[0] + "," + eaten[1] + "," + eaten[2]; }
+
+    public void loadEaten(String s) {
+        eaten[0] = eaten[1] = eaten[2] = 0;
+        if (s == null || s.isEmpty()) return;
+        String[] p = s.split(",");
+        for (int i = 0; i < 3 && i < p.length; i++) { try { eaten[i] = Integer.parseInt(p[i].trim()); } catch (NumberFormatException e) { eaten[i] = 0; } }
+    }
+
     public void sfx(String name, float vol) { if (sfx.size < 24) { sfx.add(name); sfxVol.add(vol); } }
 
     /** Klang an einem Ort: mit dem Abstand zu Lumi leiser. */
@@ -332,6 +362,7 @@ public final class GameWorld {
         for (Puzzle pz : puzzles) pz.update(this, dt);
         hints.update(this, dt);
         animalSystem.update(this, dt);
+        critterSystem.update(this, dt);
         interaction.update(this, in);
         if (collection.update(this, dt)) collectionChanged = true;
         lumi.update(dt, player);

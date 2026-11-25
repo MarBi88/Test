@@ -54,7 +54,7 @@ public final class AnimalSystem {
         w.map.move(a.x, a.y, a.tx * speed * dt, a.ty * speed * dt, 0.25f, out);
         a.x = out[0]; a.y = out[1];
         float t = Math.min(1f, a.modeTime / HOP_T);
-        a.z = MathUtils.sin(t * MathUtils.PI) * 26f;
+        a.z = MathUtils.sin(t * MathUtils.PI) * (a.type == Animal.Type.RABBIT ? 5f : 26f);
     }
 
     /** Richtung: zurück zur Heimat, wenn zu weit weg, sonst zufällig. */
@@ -75,17 +75,17 @@ public final class AnimalSystem {
 
     private void updateRabbit(GameWorld w, Animal a, Player p, float d, float screenDx, float dt) {
         if (a.mode == Animal.Mode.HOP) {
-            doHop(w, a, 1.9f, dt);
+            doHop(w, a, 0.9f, dt);
             if (a.modeTime >= HOP_T) {
                 a.z = 0f;
                 if (--a.hopsLeft > 0) { a.modeTime = 0f; } else { a.mode = Animal.Mode.SIT; a.modeTime = 0f; a.timer = MathUtils.random(1.5f, 4f); }
             }
             return;
         }
-        a.z = a.happy > 0f ? Math.abs(MathUtils.sin(a.anim * 9f)) * 16f : 0f;
+        a.z = a.happy > 0f ? Math.abs(MathUtils.sin(a.anim * 9f)) * 6f : 0f;
         if (a.nearLumi) faceLumi(a, screenDx);
         // höflich ausweichen, wenn Lumi schnell heranrennt
-        if (d < 1.4f && p.speed01 > 0.7f) { startHop(w, a, a.x - p.x, a.y - p.y, 2); return; }
+        if (d < 1.4f && p.speed01 > 0.7f) { startHop(w, a, a.x - p.x, a.y - p.y, 2); return; } // Schildkröte weicht langsam aus
         a.timer -= dt;
         if (a.timer <= 0f && a.happy <= 0f) pickWander(w, a, 3.2f, 3);
         if (a.done && a.happy <= 0f && MathUtils.randomBoolean(0.004f)) a.happy = 0.9f; // zufriedene Freudenhüpfer

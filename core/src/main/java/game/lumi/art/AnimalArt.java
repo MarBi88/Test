@@ -16,26 +16,20 @@ final class AnimalArt {
         p.disc(x - r * 0.35f, y - r * 0.4f, r * 0.38f, Color.WHITE, 1f);
     }
 
-    /** Baumfrosch (Name "animal_rabbit" bleibt – Spiellogik-Typ RABBIT = hüpfendes, fütterbares Tier). */
+    /** Meeresschildkröte (Typ RABBIT: langsamer, fütterbarer Inselbewohner – kein Futter für Lumi). Blickt nach rechts. */
     private static void rabbit(ArtSheet s) {
         Painter p = s.alloc("animal_rabbit", 96, 120);
-        Color green = Painter.rgb(0x5FC04A), dark = Painter.rgb(0x3E9A3E), belly = Painter.rgb(0xEAF6B2);
-        p.ellipse(22, 102, 13, 9, dark); p.ellipse(74, 102, 13, 9, dark);        // Hinterbeine
-        p.ellipse(36, 111, 11, 5, green); p.ellipse(60, 111, 11, 5, green);      // Vorderfüße
-        p.ellipse(48, 92, 30, 20, green);                                         // Körper
-        p.ellipse(48, 99, 18, 12, belly);
-        p.ellipse(48, 74, 27, 17, green);                                         // Kopf
-        for (int i = 0; i < 5; i++) p.disc(30 + i * 9f, 94 + (i % 2) * 6f, 2.6f, dark, 0.55f);
-        p.sphere(33, 60, 11f, green); p.sphere(63, 60, 11f, green);               // Augenhügel
-        for (int e = 0; e < 2; e++) {
-            float x = e == 0 ? 33 : 63;
-            p.sphere(x, 59, 7.5f, Painter.rgb(0xF4BC3A));
-            p.ellipse(x, 60, 2.6f, 5.4f, Painter.rgb(0x1E1020));
-            p.disc(x - 2.2f, 56.5f, 1.8f, Color.WHITE, 1f);
-        }
-        p.stroke(26, 82, 48, 87, 2.2f, Painter.rgb(0x2A6A32), 0.9f); p.stroke(48, 87, 70, 82, 2.2f, Painter.rgb(0x2A6A32), 0.9f);
-        p.disc(43, 74, 1.4f, Painter.rgb(0x2A6A32), 0.8f); p.disc(53, 74, 1.4f, Painter.rgb(0x2A6A32), 0.8f);
-        p.softEllipse(24, 80, 6, 4, Painter.rgb(0xFF9A5A), 0.5f); p.softEllipse(72, 80, 6, 4, Painter.rgb(0xFF9A5A), 0.5f);
+        Color shell = Painter.rgb(0x6FA04C), shellD = Painter.rgb(0x4E7E38), skin = Painter.rgb(0xA8CE74), skinD = Painter.rgb(0x86B05A);
+        p.ellipse(14, 104, 9, 4, skinD);                                   // Schwanz
+        p.ellipse(28, 108, 11, 6, skin); p.ellipse(62, 110, 11, 6, skin); // Flossen
+        p.ellipse(46, 88, 34, 24, shellD);                                // Panzerrand
+        p.ellipse(46, 82, 31, 21, shell);                                 // Panzer
+        for (int i = 0; i < 3; i++) { p.ellipse(28 + i * 18f, 80, 8, 6, shellD); p.ellipse(37 + i * 18f, 92, 8, 6, shellD); }
+        p.ellipse(46, 70, 16, 5, Painter.mix(shell, Color.WHITE, 0.25f, new Color()));
+        p.ellipse(78, 90, 13, 11, skin);                                  // Kopf
+        eye(p, 83, 86, 3.6f);
+        p.stroke(80, 95, 88, 94, 1.8f, Painter.rgb(0x4E7E38), 0.9f);
+        p.softEllipse(76, 93, 5, 3.5f, Painter.rgb(0xFF9A5A), 0.4f);
     }
 
     /** Krabbe (Typ SQUIRREL: huscht seitlich umher und kann buddeln). */
