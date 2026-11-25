@@ -52,7 +52,18 @@ public final class GameScreen extends ScreenAdapter {
 
     private void savePosition() { game.save.setPosition(game.world.player.x, game.world.player.y); }
 
+    // Leistungswächter: bei dauerhaft langen Frames zuerst dekorative Effekte reduzieren (Spielbarkeit bleibt)
+    private float avgFrame = 1f / 60f, slowTime, fastTime;
+
+    private void guardPerformance(float raw) {
+        avgFrame += (raw - avgFrame) * 0.05f;
+        if (avgFrame > 0.028f) { slowTime += raw; fastTime = 0f; } else { fastTime += raw; slowTime = 0f; }
+        if (slowTime > 3f) { game.world.particles.quality = Math.max(0.15f, game.world.particles.quality - 0.35f); slowTime = 0f; }
+        if (fastTime > 15f && game.world.particles.quality < 1f) { game.world.particles.quality = Math.min(1f, game.world.particles.quality + 0.2f); fastTime = 0f; }
+    }
+
     @Override public void render(float dt) {
+        guardPerformance(dt);
         dt = Math.min(dt, 1f / 20f);
         input.update(ui);
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F9)) debugAtlas = !debugAtlas;

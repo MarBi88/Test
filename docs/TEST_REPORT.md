@@ -59,6 +59,31 @@ Alle Angaben stammen aus tatsächlich ausgeführten Läufen in dieser Entwicklun
 | Zurücksetzen per 2-s-Halten | Code vorhanden, **nicht automatisiert getestet** |
 | **Tatsächliche Hörbarkeit/Klangqualität** | **nicht geprüft** – die Testumgebung hat keine Audioausgabe und ich kann nicht hören. Lautstärken sind nur rechnerisch gewählt (Musik 0,34, Wind 0,55, Effekte 0,3–0,8). |
 
+## Phase 5: Automatisierte Tests (`./gradlew :core:test`, 16 Tests, alle bestanden)
+
+Headless-libGDX mit gemocktem GL; die **echte** Welt wird gebaut (Grafik, Karte, Tiere, Rätsel).
+
+| Bereich | Geprüft |
+|---|---|
+| Weltgenerierung | genau 15 Kristalle, eindeutige Positionen, alle innerhalb der Karte; **Determinismus** (zwei Welten identisch) |
+| Erreichbarkeit | Mit offenem Tor sind alle Kristalle, Tiere und Rätselteile erreichbar (Flutfüllung mit Lumis Radius); mit geschlossenem Tor ist die Lichtung samt ihrer 3 Kristalle unerreichbar, alle anderen Kristalle bleiben erreichbar |
+| Blumenrätsel | richtige Reihenfolge löst und enthüllt Kristall; Fehlversuch dimmt alle Blumen ohne Strafe und lässt sofort neu versuchen; erneutes Berühren derselben Blume ist kein Fehler |
+| Steinrätsel | Tor sperrt vorher, öffnet nach drei Steinen, Lumi gelangt hinein |
+| Speicherstand | Flags (Tiere, Blumen, Steine) und Kristall-Bits laufen als Rundreise korrekt zurück; Tor nur bei 3 Steinen offen |
+| Tiere | Kaninchen füttern (einmalig), Eichhörnchen graben → Kristall erscheint, Vogel fliegt zu verstecktem Kristall |
+| Kollision | 4000 zufällige Schritte: Lumi ist nie in einem Hindernis, immer begehbar und kommt weit herum; gleitet an Objekten entlang |
+| Sonstiges | Iso-Projektion (Rundreise), Joystick (Totzone, Begrenzung) |
+
+**Mutationsprüfung** (um „Fake-Tests“ auszuschließen): Tor-Öffnen entfernt → `stonesOpenGateAndGateBlocksBefore` schlägt fehl; Hindernis-Herausschieben entfernt → `lumiNeverEndsInsideAnObstacle…` schlägt fehl. Danach wurde der Gleiten-Test verschärft, da er die zweite Mutation zunächst nicht bemerkte.
+
+### Leistung
+| Messung | Ergebnis |
+|---|---|
+| Canvas erscheint nach | ca. 0,5 s (lokal) |
+| Bildrate in headless Chromium mit **Software-Rendering** (SwiftShader, 1280×720) | Ø 130 ms/Frame (≈ 8 FPS), p95 167 ms – **nicht repräsentativ für echte GPUs**, nur ein Worst-Case-Anhaltspunkt |
+| Echte Hardware (Laptop, Tablet) | **nicht gemessen** |
+| Gegenmaßnahme | `GameScreen.guardPerformance`: Bei dauerhaft > 28 ms pro Frame wird zuerst die Partikelmenge schrittweise reduziert (bis 15 %), bei gutem Lauf wieder erhöht |
+
 ## Gefundene und behobene Fehler
 
 1. GWT: `PreloaderBundle`-Fehler → Konfiguration `gdx.assetpath` ergänzt.
@@ -70,13 +95,13 @@ Alle Angaben stammen aus tatsächlich ausgeführten Läufen in dieser Entwicklun
 7. Vignette zeigte Streifen → pro Spalte/Zeile direkte Alpha-Werte statt Aufsummieren.
 8. **Nichtdeterministische Platzierung** der versteckten Kristalle (ungeseedetes `shuffle`): Speicherstände hätten nach dem Neuladen auf falsche Kristalle gezeigt → seeded.
 9. Baumkronen verdeckten Lumi trotz Transparenz-Logik (Tiefenlimit zu klein) → Limit erhöht.
-10. Lumi sah wie ein Hase aus (lange Ohren) → Fuchsohren, größere Figur, Schwanz neu platziert.
+10. Felswand-Grafik wurde am Zellrand abgeschnitten (Brocken zu breit) → schmaler.
+11. Lumi sah wie ein Hase aus (lange Ohren) → Fuchsohren, größere Figur, Schwanz neu platziert.
 
 ## Nicht getestet / offene Punkte (ehrlich)
 
 * **Performance/FPS auf echter Hardware (Laptop, Tablet) nicht gemessen.** Software-Rendering ist dafür nicht aussagekräftig. Start-Erzeugung der Grafik: ~170 ms im Browser (Chromium headless).
 * Kein Test auf echtem Touchgerät, in Safari/Firefox, im Hochformat oder mit Fenstergrößenänderung zur Laufzeit (Viewport ist `ExtendViewport`, Größenänderung sollte funktionieren, ist aber nicht geprüft).
-* Kollisionen wurden nur indirekt geprüft (Lumi bleibt vor Büschen stehen); keine automatisierten Tests.
-* Es gibt noch keine automatisierten Unit-Tests; Phase 5 soll Logik (Rätsel, Speichern) testen.
+* Rendering (Optik, Verdeckung, Animationen) wird nur per Screenshot geprüft, nicht automatisiert.
 * Audio: nicht implementiert. Die headless-Tests laufen mit niedriger Bildrate (Software-Rendering), Spielzeit läuft dann langsamer; Zeitabläufe (Buddeln, Hinweise) wurden entsprechend lange abgewartet.
 * Karte/Minimap und Einstellungsmenü fehlen.

@@ -11,7 +11,7 @@
 | Bereich | Stand |
 |---|---|
 | Startmenü (Titel, Play, Ton) | ✔ |
-| Zusammenhängendes Waldgebiet (Lichtung, Wege, Teich, Büsche, Blumenwiesen, Pilze, Steine, Baumstämme) | ✔ erste Fassung; Bach, Wasserfall, Höhle, magischer Platz **offen** |
+| Zusammenhängendes Waldgebiet (Lichtung, Wege, Teich, Büsche, Blumenwiesen, Pilze, Steine, Baumstämme) | ✔ erste Fassung; Bach (flach, begehbar, Spritzer), Felswand mit **Höhle und Wasserfall** (Kristall hinter dem Vorhang, nur durch das Wasser erreichbar), magischer Platz (geheime Lichtung) ✔ |
 | Lumi: Idle, Idle-Special (Umschauen, Blinzeln, Ohrzucken), Walk, Run, Jump, Land, Sleep (nach 18 s) | ✔ |
 | Lumi: Happy (beim Einsammeln), Curious (Kristall in der Nähe) | ✔ |
 | Lumi: Interact | Animation noch **nicht ausgelöst** (Tiere/Rätsel) |
@@ -28,7 +28,7 @@
 * **Lichtkristalle** (≥15): pulsierend, teils hinter Bäumen/Wasserfall versteckt; Einsammeln = Sammelanimation + Funkeln + Zähler; Zustand wird gespeichert.
 * **Kaninchen** (füttern), **Eichhörnchen** (hat etwas versteckt), **Vogel** (zeigt versteckten Ort) – je mit eigenem Verhalten und Reaktion auf Lumi.
 * **Tiere:** Das *Kaninchen* hoppelt in Heimatnähe, schaut zu Lumi und weicht höflich aus, wenn Lumi herangerannt kommt; mit der Karotten-Blase kann man es füttern (Herzchen, danach Freudenhüpfer). Das *Eichhörnchen* huscht kurz umher; mit der Eichel-Blase buddelt es – dabei erscheint sein Geschenk, ein bis dahin unsichtbarer Kristall. Der *Vogel* fliegt, sobald Lumi nah ist, zu einem noch nicht gefundenen versteckten Kristall, landet daneben und zwitschert (Noten-Blase); Antippen ruft ihn erneut.
-* **Kristalle (15):** 6 offen, 5 hinter Bäumen versteckt (davon 1 Eichhörnchen-Geschenk), 1 Belohnung des Blumenrätsels, 3 in der geheimen Lichtung.
+* **Kristalle (15):** 6 offen, 4 hinter Bäumen versteckt (davon 1 Eichhörnchen-Geschenk), 1 hinter dem Wasserfall in der Höhle, 1 Belohnung des Blumenrätsels, 3 in der geheimen Lichtung.
 * **Hinweise:** Nach ca. 11 s Stillstand schaut Lumi zum nächsten ungelösten Rätselteil, dort leuchtet ein sanftes Signal.
 * **Rätsel 1:** drei leuchtende Blumen in der Farbreihenfolge rosa → gelb → blau berühren; die Reihenfolge zeigt der Hinweisstein (drei Farbperlen). Falsche Blume: sie wackelt, alles dimmt sanft, man beginnt neu – ohne Strafe. Lösung: Blumen blühen auf, ein Kristall erscheint.
 * **Rätsel 2:** drei magische Steine im Wald durch Berühren aktivieren. Drei Orbs über dem Ranken-Tor zeigen den Fortschritt. Sind alle an, lösen sich die Ranken, und der Weg zur geheimen Lichtung (magischer Platz, 3 Kristalle) ist frei. Das Tor sperrt vorher wirklich (per Test geprüft).

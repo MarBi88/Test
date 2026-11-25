@@ -3,7 +3,7 @@
 Ein liebevoll gestaltetes 2.5D-Browsergame für ein fünfjähriges Kind. Lumi, ein kleiner orangefarbener Fuchs,
 erkundet einen magischen Wald. Java + libGDX, im Browser lauffähig (kompiliert nach JavaScript).
 
-**Stand: Phase 0–3 weitgehend umgesetzt (Welt, Lumi, 15 Kristalle, 3 Tiere, 2 Rätsel) – spielbar im Browser; Audio (Phase 4) und Feinschliff/QA (Phase 5) offen.** Details in [docs/](docs/).
+**Stand: Phase 0–5 umgesetzt – spielbar im Browser (Welt mit Wasserfall/Höhle/Bach, Lumi, 15 Kristalle, 3 Tiere, 2 Rätsel, Ton, Einstellungen, automatisierte Tests). Offen: Leistungsmessung auf echter Hardware, Karte, Hörprüfung des Tons.** Details in [docs/](docs/).
 
 ## Starten
 
@@ -15,6 +15,9 @@ Voraussetzungen: JDK 17+ (getestet mit 21), Internet für den ersten Gradle-Abru
 
 # lokal ausliefern und im Browser öffnen: http://localhost:8080
 cd html/build/dist && python3 -m http.server 8080
+
+# Automatisierte Tests (headless, 16 Tests: Rätsel, Tor, Kollision, Speicherstand, Determinismus)
+./gradlew :core:test
 
 # Desktop-Testversion (LWJGL3)
 ./gradlew :lwjgl3:run
