@@ -89,7 +89,7 @@ public final class WorldMap {
         out[0] = x; out[1] = y;
     }
 
-    private boolean free(float x, float y, float radius) {
+    public boolean free(float x, float y, float radius) {
         if (!walkable(x, y)) return false;
         for (int i = 0; i < obX.size; i++) {
             float ddx = x - obX.items[i], ddy = y - obY.items[i];

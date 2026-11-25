@@ -16,6 +16,9 @@ public final class ParticleSystem {
     private final float[] fx = new float[FIREFLIES], fy = new float[FIREFLIES], fPhase = new float[FIREFLIES], fSpeed = new float[FIREFLIES], fSize = new float[FIREFLIES];
     private final float[] mx = new float[MOTES], my = new float[MOTES], mPhase = new float[MOTES], mSize = new float[MOTES];
     private final float[] lx = new float[LEAVES], ly = new float[LEAVES], lRot = new float[LEAVES], lPhase = new float[LEAVES], lLife = new float[LEAVES];
+    private static final int SPARKS = 48;
+    private final float[] sx = new float[SPARKS], sy = new float[SPARKS], svx = new float[SPARKS], svy = new float[SPARKS], sLife = new float[SPARKS], sMax = new float[SPARKS];
+    private int nextSpark;
     private final TextureRegion glow, leaf;
     private float time;
     private boolean seeded;
@@ -45,12 +48,28 @@ public final class ParticleSystem {
             my[i] += (3f + MathUtils.cos(mPhase[i] * 0.5f + i) * 4f) * dt;
             wrap(mx, my, i, camX, camY, hw, hh);
         }
+        for (int i = 0; i < SPARKS; i++) {
+            if (sLife[i] <= 0f) continue;
+            sLife[i] -= dt;
+            sx[i] += svx[i] * dt; sy[i] += svy[i] * dt;
+            svx[i] *= 1f - 2.2f * dt; svy[i] = svy[i] * (1f - 2.2f * dt) - 30f * dt;
+        }
         for (int i = 0; i < LEAVES; i++) {
             lLife[i] += dt;
             ly[i] -= (28f + 8f * MathUtils.sin(lPhase[i])) * dt;
             lx[i] += MathUtils.sin(lLife[i] * 1.6f + lPhase[i]) * 36f * dt + 6f * dt;
             lRot[i] += MathUtils.cos(lLife[i] * 1.6f + lPhase[i]) * 60f * dt;
             if (ly[i] < camY - hh) respawnLeaf(i, camX, camY, hw, hh);
+        }
+    }
+
+    /** Funkelnder Sammel-Effekt (Bildschirmkoordinaten). */
+    public void burst(float x, float y, int n) {
+        for (int k = 0; k < n; k++) {
+            int i = nextSpark; nextSpark = (nextSpark + 1) % SPARKS;
+            float a = MathUtils.random(MathUtils.PI2), v = MathUtils.random(40f, 170f);
+            sx[i] = x; sy[i] = y; svx[i] = MathUtils.cos(a) * v; svy[i] = MathUtils.sin(a) * v * 0.8f + 40f;
+            sMax[i] = sLife[i] = MathUtils.random(0.6f, 1.1f);
         }
     }
 
@@ -77,6 +96,13 @@ public final class ParticleSystem {
 
     /** Leuchtende Partikel (additives Blending, vom Aufrufer gesetzt). */
     public void drawGlows(SpriteBatch b) {
+        for (int i = 0; i < SPARKS; i++) {
+            if (sLife[i] <= 0f) continue;
+            float t = sLife[i] / sMax[i];
+            float s = 5f + 13f * t;
+            b.setColor(0.6f, 1f, 0.92f, t * 0.85f);
+            b.draw(glow, sx[i] - s, sy[i] - s, s * 2f, s * 2f);
+        }
         int nf = Math.round(FIREFLIES * quality), nm = Math.round(MOTES * quality);
         for (int i = 0; i < nf; i++) {
             float pulse = 0.5f + 0.5f * MathUtils.sin(time * (1.6f + fSpeed[i]) + fPhase[i] * 3f);

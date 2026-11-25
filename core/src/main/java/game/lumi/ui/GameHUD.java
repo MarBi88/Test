@@ -19,8 +19,27 @@ public final class GameHUD {
         jump = art.get("icon_jump"); pause = art.get("icon_pause");
     }
 
-    public void draw(SpriteBatch b, TouchInput t, float dt) {
+    /** Sammelanzeige links oben: Kristall-Symbol + eine Perle pro Kristall (gefüllt = gefunden). */
+    private void drawCollection(SpriteBatch b, String bits, float h) {
+        int n = bits.length();
+        float w = 110f + n * 21f, x = 28f, y = h - 28f - 64f;
+        b.setColor(0.1f, 0.15f, 0.2f, 0.22f);
+        b.draw(art.get("ui_pill"), x + 2f, y - 5f, w, 64f);
+        b.setColor(1f, 0.95f, 0.82f, 0.88f);
+        b.draw(art.get("ui_pill"), x, y, w, 64f);
+        b.setColor(1f, 1f, 1f, 1f);
+        b.draw(art.get("icon_crystal"), x + 14f, y + 8f, 48f, 48f);
+        for (int i = 0; i < n; i++) {
+            boolean got = bits.charAt(i) == '1';
+            if (got) b.setColor(0.2f, 0.82f, 0.74f, 1f); else b.setColor(0.75f, 0.7f, 0.6f, 0.55f);
+            b.draw(circle, x + 78f + i * 21f, y + 22f, 18f, 18f);
+        }
+        b.setColor(Color.WHITE);
+    }
+
+    public void draw(SpriteBatch b, TouchInput t, float dt, String bits, float uiH) {
         time += dt;
+        drawCollection(b, bits, uiH);
         boolean showTouch = GameConfig.touchDevice || t.used;
         if (showTouch) {
             // Joystick (oder Hinweis-Ring an der Standardposition)

@@ -13,10 +13,12 @@
 | Startmenü (Titel, Play, Ton) | ✔ |
 | Zusammenhängendes Waldgebiet (Lichtung, Wege, Teich, Büsche, Blumenwiesen, Pilze, Steine, Baumstämme) | ✔ erste Fassung; Bach, Wasserfall, Höhle, magischer Platz **offen** |
 | Lumi: Idle, Idle-Special (Umschauen, Blinzeln, Ohrzucken), Walk, Run, Jump, Land, Sleep (nach 18 s) | ✔ |
-| Lumi: Interact, Collect, Happy (`cheer()`), Curious (`beCurious()`) | Animation im Code vorhanden, **noch nicht ausgelöst** (Phase 3) |
+| Lumi: Happy (beim Einsammeln), Curious (Kristall in der Nähe) | ✔ |
+| Lumi: Interact | Animation noch **nicht ausgelöst** (Tiere/Rätsel) |
 | Steuerung Desktop + Tablet, Pause, Speichern der Position | ✔ |
 | Animierte Vegetation, Wasser, Partikel (Glühwürmchen, Staub, Blätter), Lichtstrahlen, Vignette | ✔ |
-| ≥15 Lichtkristalle, ≥3 Tiere + Interaktionen, ≥2 Rätsel, Sammelanzeige | **offen (Phase 3)** |
+| 15 Lichtkristalle (9 offen, 6 hinter Bäumen versteckt, per Flutfüllung als erreichbar geprüft), Sammeln mit Funkeln + Freude-Animation + Neugier in der Nähe, Sammelanzeige (Perlen-Leiste), Speicherung | ✔ |
+| ≥3 Tiere + Interaktionen, ≥2 Rätsel | **offen (Phase 3)** |
 | Musik, Ambiente, SFX, Einstellungen | **offen (Phase 4)** |
 
 ## Geplantes Gameplay (Phase 3)

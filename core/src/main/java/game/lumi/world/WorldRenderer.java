@@ -19,7 +19,7 @@ import game.lumi.entities.Player;
  */
 public final class WorldRenderer {
     private final TextureRegion[] tiles = new TextureRegion[ArtFactory.TILE_VARIANTS];
-    private final TextureRegion blob, shadow, glow, ring, ray, vignette;
+    private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
     private float time;
     /** Entwickler-Hilfe: 0 Kacheln, 1 Bodenflecken, 2 Objekte, 3 Schatten ausblenden. */
@@ -28,7 +28,7 @@ public final class WorldRenderer {
     public WorldRenderer(ArtSheet art) {
         for (int i = 0; i < tiles.length; i++) tiles[i] = art.get("tile" + i);
         blob = art.get("blob"); shadow = art.get("shadow"); glow = art.get("glow"); ring = art.get("ui_ring");
-        ray = art.get("ray"); vignette = art.get("vignette");
+        crystal = art.get("crystal"); ray = art.get("ray"); vignette = art.get("vignette");
     }
 
     public void render(SpriteBatch b, GameWorld w, WorldCamera cam, float dt) {
@@ -103,9 +103,12 @@ public final class WorldRenderer {
 
         // ---- Objekte tiefensortiert
         boolean playerDrawn = false;
+        int ci = 0;
+        Array<game.lumi.entities.Collectible> cr = w.crystals;
         float fade = Math.min(1f, 9f * dt);
         for (int i = 0; i < decor.size; i++) {
             Decor d = decor.get(i);
+            while (ci < cr.size && cr.get(ci).depth() <= d.depth()) drawCrystal(b, cr.get(ci++), L, R, B, T);
             if (!playerDrawn && d.depth() > pDepth) { w.lumi.draw(b, pSX, pSY, p.z); playerDrawn = true; }
             if (d.occluder) {
                 boolean hides = d.depth() > pDepth && d.depth() < pDepth + 7f && d.left < pr && d.right > pl && d.top > pb && d.bottom < pt
@@ -115,6 +118,7 @@ public final class WorldRenderer {
             if (hide[2] || d.right < L || d.left > R || d.top < B || d.bottom > T) continue;
             drawDecor(b, d);
         }
+        while (ci < cr.size) drawCrystal(b, cr.get(ci++), L, R, B, T);
         if (!playerDrawn) w.lumi.draw(b, pSX, pSY, p.z);
         b.setColor(Color.WHITE);
 
@@ -122,6 +126,7 @@ public final class WorldRenderer {
         b.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
         w.lumi.drawGlow(b, pSX, pSY, p.z, w.lumi.isBackView());
         drawWaterSparkles(b, map);
+        for (int i = 0; i < cr.size; i++) drawCrystalGlow(b, cr.get(i), L, R, B, T);
         w.particles.drawGlows(b);
         drawLightShafts(b, cam);
         b.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -134,6 +139,34 @@ public final class WorldRenderer {
     private boolean overlapsCanopy(Decor d, float pl, float pr, float pb, float pt) {
         float canopyBottom = d.bottom + (d.top - d.bottom) * 0.30f;
         return pt > canopyBottom;
+    }
+
+    private void drawCrystal(SpriteBatch b, game.lumi.entities.Collectible c, float L, float R, float B, float T) {
+        if (c.vanish >= 1f) return;
+        float sx = c.screenX(), sy = c.screenY();
+        if (sx < L - 60f || sx > R + 60f || sy < B - 60f || sy > T + 60f) return;
+        float k = 1f - c.vanish;
+        float bob = MathUtils.sin(time * 1.8f + c.phase) * 4f + 6f + c.vanish * 50f;
+        float w = 80f * 0.8f * k, h = 100f * 0.8f * k;
+        b.setColor(1f, 1f, 1f, k);
+        b.draw(shadow, sx - 24f, sy - 8f, 48f, 20f);
+        b.setColor(1f, 1f, 1f, k);
+        b.draw(crystal, sx - w / 2f, sy - 9f * 0.8f + bob, w, h);
+        b.setColor(Color.WHITE);
+    }
+
+    private void drawCrystalGlow(SpriteBatch b, game.lumi.entities.Collectible c, float L, float R, float B, float T) {
+        if (c.vanish >= 1f) return;
+        float sx = c.screenX(), sy = c.screenY();
+        if (sx < L - 100f || sx > R + 100f || sy < B - 100f || sy > T + 100f) return;
+        float pulse = 0.55f + 0.45f * MathUtils.sin(time * 2.2f + c.phase);
+        float k = 1f - c.vanish;
+        float s = (54f + pulse * 22f) * k;
+        float cy = sy + 40f + MathUtils.sin(time * 1.8f + c.phase) * 4f + c.vanish * 50f;
+        b.setColor(0.3f, 1f, 0.9f, (0.18f + pulse * 0.28f) * k);
+        b.draw(glow, sx - s, cy - s, s * 2f, s * 2f);
+        b.setColor(0.8f, 1f, 1f, 0.5f * pulse * k);
+        b.draw(glow, sx - 14f, cy - 14f, 28f, 28f);
     }
 
     private void drawWaterSparkles(SpriteBatch b, WorldMap map) {

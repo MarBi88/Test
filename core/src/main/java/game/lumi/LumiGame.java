@@ -53,10 +53,12 @@ public class LumiGame extends Game {
     public void startGame(boolean continueSaved) {
         if (continueSaved && save.hasGame()) {
             world.resetPlayer(save.getX(world.map.spawnX), save.getY(world.map.spawnY));
+            world.loadCollected(save.getCrystals());
         } else {
             save.newGame();
             audio.setEnabled(true);
             world.resetPlayer(world.map.spawnX, world.map.spawnY);
+            world.loadCollected("");
         }
         cam.snapTo(world.player.screenX(), world.player.screenY());
         pointers.reset();

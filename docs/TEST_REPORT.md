@@ -25,6 +25,16 @@ Alle Angaben stammen aus tatsächlich ausgeführten Läufen in dieser Entwicklun
 | Verdeckungs-Transparenz hinter Bäumen | ✔ sichtbar |
 | Browser-Konsole | Keine Fehler des Spiels. Einziger Eintrag: „Permissions policy violation: unload“ – kommt vom libGDX-Backend (Unload-Handler) in der Playwright-Umgebung, harmlos. |
 
+## Phase 3, Teil 1: Lichtkristalle
+
+| Test | Ergebnis |
+|---|---|
+| 15 Kristalle werden erzeugt (Log mit Positionen) | ✔ |
+| Berühren sammelt ein: Perle in der Anzeige füllt sich, Lumi zeigt Freude (Screenshot) | ✔ |
+| Speicherstand `crystals` im LocalStorage (z. B. `100000000000000`) | ✔ |
+| Erreichbarkeit: Flutfüllung beim Platzieren; Test mit einem versteckten Kristall | ✔ (nur stichprobenartig, nicht alle 15 einzeln abgelaufen) |
+| Wiederladen mit Kristall-Zustand in der Anzeige | nicht separat geprüft |
+
 ## Gefundene und behobene Fehler
 
 1. GWT: `PreloaderBundle`-Fehler → Konfiguration `gdx.assetpath` ergänzt.

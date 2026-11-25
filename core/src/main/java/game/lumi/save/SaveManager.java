@@ -25,6 +25,11 @@ public final class SaveManager {
     public float getX(float def) { return prefs == null ? def : prefs.getFloat("x", def); }
     public float getY(float def) { return prefs == null ? def : prefs.getFloat("y", def); }
 
+    /** Eingesammelte Kristalle als Zeichenkette aus '0'/'1' (ein Zeichen pro Kristall). */
+    public String getCrystals() { return prefs == null ? "" : prefs.getString("crystals", ""); }
+
+    public void setCrystals(String bits) { put(() -> prefs.putString("crystals", bits)); flush(); }
+
     public boolean soundOn() { return prefs == null || prefs.getBoolean("sound", true); }
 
     public void setSound(boolean on) { put(() -> prefs.putBoolean("sound", on)); flush(); }

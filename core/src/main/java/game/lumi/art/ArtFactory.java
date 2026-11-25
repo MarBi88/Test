@@ -38,6 +38,7 @@ public final class ArtFactory {
         rocks(s);
         log(s);
         leaf(s);
+        crystal(s);
         LumiArt.build(s);
         UiArt.build(s);
         s.finish();
@@ -296,5 +297,23 @@ public final class ArtFactory {
         Painter p = s.alloc("leaf", 40, 40);
         p.ellipse(20, 20, 16, 8, Painter.rgb(0xA6DB5E));
         p.stroke(7, 20, 33, 20, 1.6f, Painter.rgb(0x4FA24E), 0.8f);
+    }
+
+    /** Lichtkristall: Hauptkristall + zwei kleine, Facetten in Türkis/Eisblau. Fußpunkt unten Mitte. */
+    private static void crystal(ArtSheet s) {
+        Painter p = s.alloc("crystal", 80, 100);
+        Color deep = Painter.rgb(0x1FA9A0), mid = Painter.rgb(0x58E6D6), lite = Painter.rgb(0xB5FFF2), white = Painter.rgb(0xEFFFFC);
+        p.softEllipse(40, 90, 26, 6, new Color(0.08f, 0.1f, 0.2f, 1f), 0.35f);
+        // kleine Kristalle hinten
+        p.tri(14, 90, 22, 54, 32, 90, deep, 1f); p.tri(22, 54, 26, 90, 32, 90, mid, 0.9f);
+        p.tri(52, 90, 62, 58, 68, 90, deep, 1f); p.tri(62, 58, 66, 90, 68, 90, mid, 0.9f);
+        // Hauptkristall: sechsseitige Spitze
+        p.tri(40, 6, 22, 30, 58, 30, lite, 1f);
+        p.tri(22, 30, 58, 30, 40, 92, mid, 1f);
+        p.tri(22, 30, 40, 30, 40, 92, deep, 0.85f);
+        p.tri(40, 6, 40, 30, 58, 30, white, 0.55f);
+        p.tri(40, 30, 58, 30, 40, 92, Painter.rgb(0x3FD0C4), 0.8f);
+        p.tri(30, 30, 40, 30, 36, 60, white, 0.35f);
+        p.disc(36, 22, 2.5f, Color.WHITE, 0.9f);
     }
 }
