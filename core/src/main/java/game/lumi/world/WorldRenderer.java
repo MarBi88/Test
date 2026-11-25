@@ -21,6 +21,7 @@ import game.lumi.entities.Player;
 public final class WorldRenderer {
     private final ArtSheet art2;
     private final TextureRegion stoneMagic, hintStone;
+    private final TextureRegion[] fallFrames = new TextureRegion[4];
     private final TextureRegion[] tiles = new TextureRegion[ArtFactory.TILE_VARIANTS];
     private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
@@ -31,6 +32,7 @@ public final class WorldRenderer {
 
     public WorldRenderer(ArtSheet art) {
         art2 = art;
+        for (int i = 0; i < 4; i++) fallFrames[i] = art.get("waterfall" + i);
         stoneMagic = art.get("stone_magic"); hintStone = art.get("hintstone");
         for (int i = 0; i < tiles.length; i++) tiles[i] = art.get("tile" + i);
         blob = art.get("blob"); shadow = art.get("shadow"); glow = art.get("glow"); ring = art.get("ui_ring");
@@ -125,6 +127,7 @@ public final class WorldRenderer {
             float dd = d.depth();
             while (ci < cr.size && cr.get(ci).depth() <= dd) drawCrystal(b, cr.get(ci++), L, R, B, T);
             while (di < dn && dyn[di].depth() <= dd) drawDyn(b, w, dyn[di++]);
+            if (d.fall) d.region = fallFrames[(int) (time * 9f) & 3];
             if (d.gate) {
                 d.alpha += ((map.gateOpen ? 0f : 1f) - d.alpha) * Math.min(1f, 1.4f * dt);
                 if (d.alpha < 0.03f) continue;
@@ -148,6 +151,7 @@ public final class WorldRenderer {
         w.lumi.drawGlow(b, pSX, pSY, p.z, w.lumi.isBackView());
         drawWaterSparkles(b, map);
         drawPuzzleGlows(b, w, L, R, B, T);
+        drawWaterfallFx(b, w.map, L, R, B, T);
         for (int i = 0; i < cr.size; i++) drawCrystalGlow(b, cr.get(i), L, R, B, T);
         w.particles.drawGlows(b);
         drawLightShafts(b, cam);
@@ -286,6 +290,26 @@ public final class WorldRenderer {
         b.draw(glow, sx - s, cy - s, s * 2f, s * 2f);
         b.setColor(0.8f, 1f, 1f, 0.5f * pulse * k);
         b.draw(glow, sx - 14f, cy - 14f, 28f, 28f);
+    }
+
+    /** Gischt und Nebel am Fuß des Wasserfalls, Leuchten der Höhle. */
+    private void drawWaterfallFx(SpriteBatch b, WorldMap m, float L, float R, float B, float T) {
+        float bx = Iso.sx(m.cliffX + 0.95f, m.cliffY + 0.95f), by = Iso.sy(m.cliffX + 0.95f, m.cliffY + 0.95f);
+        if (bx < L - 300f || bx > R + 300f || by < B - 300f || by > T + 400f) return;
+        float pulse = 0.5f + 0.5f * MathUtils.sin(time * 1.7f);
+        b.setColor(0.85f, 0.97f, 1f, 0.22f + 0.08f * pulse);
+        b.draw(glow, bx - 120f, by - 40f, 240f, 130f);
+        for (int i = 0; i < 9; i++) { // aufsteigende Gischtperlen
+            float ph = (time * 0.7f + i * 0.37f) % 1f;
+            float x = bx + MathUtils.sin(i * 2.7f) * 44f, y = by + 6f + ph * 55f;
+            b.setColor(1f, 1f, 1f, (1f - ph) * 0.55f);
+            b.draw(glow, x - 7f, y - 7f, 14f, 14f);
+        }
+        // Höhlenleuchten (violett) hinter dem Vorhang
+        float cx = Iso.sx(m.cliffX + 0.35f, m.cliffY + 0.35f), cy = Iso.sy(m.cliffX + 0.35f, m.cliffY + 0.35f);
+        b.setColor(0.7f, 0.5f, 1f, 0.22f + 0.1f * pulse);
+        b.draw(glow, cx - 90f, cy + 30f, 180f, 150f);
+        b.setColor(Color.WHITE);
     }
 
     private void drawWaterSparkles(SpriteBatch b, WorldMap map) {

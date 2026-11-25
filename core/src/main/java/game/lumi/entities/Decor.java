@@ -24,6 +24,8 @@ public final class Decor extends Entity {
     public float alpha = 1f;
     /** Teil des Ranken-Tors (verschwindet, wenn das Steinrätsel gelöst ist). */
     public boolean gate;
+    /** Wasserfall-Vorhang: Bild wird pro Frame animiert. */
+    public boolean fall;
     /** Bildschirm-Begrenzungsrechteck (für Culling und Verdeckungsprüfung), im Konstruktor-Aufruf finalize() gesetzt. */
     public float left, right, bottom, top;
 

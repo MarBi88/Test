@@ -115,8 +115,9 @@ public final class GameWorld {
         flowers.reward.active = false;
         float[][] inner = { { -1.2f, 0.4f }, { 1.1f, 0.7f }, { 0.1f, -1.3f } };
         for (float[] o : inner) add(map.secretX + o[0], map.secretY + o[1], false);
+        add(map.cliffX + 0.35f, map.cliffY + 0.35f, true); // hinter dem Wasserfall in der Höhle
         int tries = 0;
-        while (crystals.size < 10 && tries++ < 5000) {
+        while (crystals.size < 11 && tries++ < 5000) {
             float x = map.spawnX + r.nextFloat() * 36f - 18f, y = map.spawnY + r.nextFloat() * 36f - 18f;
             float dx = x - map.spawnX, dy = y - map.spawnY;
             if (dx * dx + dy * dy < 16f || map.inSecret(x, y, 1.5f) || nearProps(x, y, 2.4f) || map.field(x, y) > 0.8f || !map.free(x, y, 0.5f) || !reachable(x, y) || !farFromOthers(x, y, 5f)) continue;
@@ -288,6 +289,11 @@ public final class GameWorld {
         float stride = sp > 4.2f ? 1.15f : 0.85f;
         if (stepAccum >= stride) {
             stepAccum = 0f;
+            if (map.inShallows(player.x, player.y)) {
+                particles.burst(player.screenX(), player.screenY() + 6f, 5, 0.7f, 0.9f, 1f);
+                sfx("step_path1", 0.35f);
+                return;
+            }
             boolean path = map.distToPath(player.x, player.y) < 0.75f;
             sfx((path ? "step_path" : "step_grass") + MathUtils.random(2), 0.5f + MathUtils.random(0.15f));
         }

@@ -41,6 +41,8 @@ public final class ArtFactory {
         crystal(s);
         AnimalArt.build(s);
         PuzzleArt.build(s);
+        cliff(s);
+        waterfall(s);
         LumiArt.build(s);
         UiArt.build(s);
         s.finish();
@@ -317,5 +319,64 @@ public final class ArtFactory {
         p.tri(40, 30, 58, 30, 40, 92, Painter.rgb(0x3FD0C4), 0.8f);
         p.tri(30, 30, 40, 30, 36, 60, white, 0.35f);
         p.disc(36, 22, 2.5f, Color.WHITE, 0.9f);
+    }
+
+    /** Felswand mit kleiner Höhle (violett leuchtend), Moos und Farn. Fußpunkt unten Mitte. */
+    private static void cliff(ArtSheet s) {
+        Painter p = s.alloc("cliff", 360, 300);
+        RandomXS128 r = new RandomXS128(909);
+        Color g1 = Painter.rgb(0x7E8098), g2 = Painter.rgb(0x9A98B4), g3 = Painter.rgb(0xB0AACB);
+        p.softEllipse(180, 282, 150, 14, new Color(0.08f, 0.1f, 0.2f, 1f), 0.4f);
+        // Felsmassiv aus Reihen runder Brocken (hinten oben → vorne unten), nach oben schmaler
+        Color[] gc = { g1, g2, g3, Painter.mix(g1, g3, 0.5f, new Color()) };
+        for (int row = 4; row >= 0; row--) {
+            int n = new int[] { 5, 5, 4, 3, 2 }[row]; float rad = 40 - row * 3f, y = 244 - row * 42f;
+            for (int i = 0; i < n; i++) {
+                float x = 180 + (i - (n - 1) / 2f) * (rad * 1.5f) + (r.nextFloat() - 0.5f) * 8f;
+                p.sphere(x, y + (r.nextFloat() - 0.5f) * 10f, rad * (0.9f + r.nextFloat() * 0.2f), gc[r.nextInt(4)]);
+            }
+        }
+        // Höhle
+        p.ellipse(180, 200, 58, 74, Painter.rgb(0x1E1830));
+        p.softEllipse(180, 222, 44, 56, Painter.rgb(0x9B6BE0), 0.55f);
+        p.softEllipse(180, 236, 20, 28, Painter.rgb(0xE4D2FF), 0.55f);
+        for (int i = 0; i < 5; i++) { // Felsbogen um die Höhle
+            float a = MathUtils.PI + i * MathUtils.PI / 4f;
+            p.ellipse(180 + MathUtils.cos(a) * 62f, 205 + MathUtils.sin(a) * 82f, 17, 21, g3);
+        }
+        // Sockelsteine
+        for (int i = 0; i < 6; i++) p.ellipse(52 + i * 51f, 272, 28 + (i % 3) * 5, 17 + (i % 2) * 3, i % 2 == 0 ? g2 : g3);
+        // Moos und Farn oben
+        for (int i = 0; i < 9; i++) p.ellipse(40 + i * 35f, 62 + r.nextInt(30), 28, 12, Painter.rgb(0x6FB04E));
+        for (int i = 0; i < 7; i++) {
+            float x = 40 + i * 46f + r.nextInt(10), y = 70 + r.nextInt(18);
+            for (int k = -2; k <= 2; k++) p.tri(x - 3, y + 8, x + 3, y + 8, x + k * 11f, y - 26 + Math.abs(k) * 7f, Painter.rgb(k % 2 == 0 ? 0x3E9A4E : 0x5BBE5A), 1f);
+        }
+    }
+
+    /** Wasserfall-Vorhang in 4 Animationsbildern (Streifen wandern nach unten, Periode 64 px). */
+    private static void waterfall(ArtSheet s) {
+        for (int f = 0; f < 4; f++) {
+            Painter p = s.alloc("waterfall" + f, 150, 270);
+            RandomXS128 r = new RandomXS128(33);
+            // Grundkörper
+            p.rect(22, 20, 106, 236, Painter.rgb(0x8FD8F0), 0.42f);
+            p.softEllipse(75, 20, 62, 14, Color.WHITE, 0.8f);
+            for (int i = 0; i < 11; i++) {
+                float x = 24 + i * 9.5f + r.nextFloat() * 3f, w = 3f + r.nextFloat() * 4f;
+                float ph = r.nextFloat() * 64f;
+                for (int k = -1; k < 5; k++) {
+                    float y = 20 + k * 64f + ((f * 16f + ph) % 64f);
+                    if (y < 20 || y + 38 > 256) continue;
+                    p.rect(x, y, w, 38f, Color.WHITE, 0.55f);
+                }
+            }
+            for (int k = 0; k < 8; k++) p.rect(22, 20 + k * 30f + f * 7f % 30f, 106, 2f, Color.WHITE, 0.18f);
+            // seitliche Ränder weich
+            p.rect(22, 20, 4, 236, Color.WHITE, 0.3f); p.rect(124, 20, 4, 236, Color.WHITE, 0.3f);
+            // Gischt unten
+            p.softEllipse(75, 252, 70, 14, Color.WHITE, 0.9f);
+            for (int i = 0; i < 6; i++) p.sphere(34 + i * 16f, 246 + (i + f) % 3 * 3f, 7f, Painter.rgb(0xEAF8FF));
+        }
     }
 }

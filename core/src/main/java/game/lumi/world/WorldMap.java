@@ -49,6 +49,9 @@ public final class WorldMap {
     public static final float SECRET_R = 3.4f;
     public final float secretX = CX + 9.5f, secretY = CY - 16f;
     public final float gateAngle = MathUtils.atan2(3f, 2.5f);
+    /** Felswand mit Höhle und Wasserfall im Süden; Bach fließt zum Teich. */
+    public final float cliffX = CX - 2f, cliffY = CY + 16f;
+    private final FloatArray stX = new FloatArray(), stY = new FloatArray();
     public boolean gateOpen;
     public final Array<Decor> gateDecor = new Array<>();
     private final FloatArray gX = new FloatArray(), gY = new FloatArray();
@@ -60,6 +63,7 @@ public final class WorldMap {
 
     public WorldMap(ArtSheet art) {
         buildPath();
+        buildStream();
         buildTiles();
         buildGroundDecals();
         buildDecor(art);
@@ -139,6 +143,41 @@ public final class WorldMap {
 
     /** Zusätzliches festes Hindernis (z. B. magischer Stein). Vor der Welt-Fertigstellung aufrufen oder direkt nutzen. */
     public void addObstacle(float x, float y, float r) { obX.add(x); obY.add(y); obR.add(r); }
+
+    /** Abstand zur Bachmitte (Weltkacheln). */
+    public float distToStream(float x, float y) {
+        float best = 1e9f;
+        for (int i = 0; i < stX.size; i++) { float dx = x - stX.items[i], dy = y - stY.items[i]; float d = dx * dx + dy * dy; if (d < best) best = d; }
+        return (float) Math.sqrt(best);
+    }
+
+    public boolean nearStream(float x, float y, float d) { return distToStream(x, y) < d; }
+
+    /** Lumi steht im flachen Wasser (Bach oder Becken am Wasserfall). */
+    public boolean inShallows(float x, float y) {
+        float px = cliffX + 1.5f, py = cliffY + 1.5f;
+        float dx = x - px, dy = y - py;
+        return distToStream(x, y) < 0.6f || dx * dx + dy * dy < 1.6f * 1.6f;
+    }
+
+    public boolean nearCliff(float x, float y, float e) {
+        float dx = x - (cliffX + 1.2f), dy = y - (cliffY + 1.2f), r = 3.4f + e;
+        return dx * dx + dy * dy < r * r;
+    }
+
+    private void buildStream() {
+        float sx = cliffX + 1.6f, sy = cliffY + 1.6f;           // Becken vor dem Wasserfall
+        float ex = pondX - 1.5f, ey = pondY + 2.2f;              // Teichufer
+        float len = (float) Math.hypot(ex - sx, ey - sy);
+        float nx = -(ey - sy) / len, ny = (ex - sx) / len;       // Seitenrichtung für Mäander
+        int n = (int) (len * 2.2f);
+        for (int i = 0; i <= n; i++) {
+            float t = i / (float) n, m = MathUtils.sin(t * MathUtils.PI * 3f) * 1.4f * MathUtils.sin(t * MathUtils.PI);
+            stX.add(MathUtils.lerp(sx, ex, t) + nx * m); stY.add(MathUtils.lerp(sy, ey, t) + ny * m);
+        }
+        // Felswand blockiert (Höhle liegt dahinter, Zugang nur durch den Wasservorhang)
+        for (float t = -1.45f; t <= 1.46f; t += 0.72f) addObstacle(cliffX + t * 0.707f, cliffY - t * 0.707f, 0.32f);
+    }
 
     public boolean inSecret(float x, float y, float extra) {
         float dx = x - secretX, dy = y - secretY;
@@ -293,6 +332,13 @@ public final class WorldMap {
             float x = pathX.items[i] + rf(-0.15f, 0.15f), y = pathY.items[i] + rf(-0.15f, 0.15f);
             addDecal(decals, x, y, rf(0.65f, 0.9f), 1f, dirt, 0.50f, 0);
         }
+        // Bach und Becken (Ufer, dann Wasser – das Wasser schimmert animiert)
+        Color streamShore = Painter_rgb(0xC8E0A0), sw1 = Painter_rgb(0x4FC0D2), sw2 = Painter_rgb(0x8EE0EC);
+        for (int i = 0; i < stX.size; i++) addDecal(decals, stX.items[i], stY.items[i], 0.95f, 1f, streamShore, 0.55f, 0);
+        for (int i = 0; i < stX.size; i++) addDecal(waterDecals, stX.items[i], stY.items[i], 0.62f, 1f, i % 2 == 0 ? sw1 : sw2, 0.95f, 1);
+        addDecal(decals, cliffX + 1.5f, cliffY + 1.5f, 2.3f, 1f, streamShore, 0.7f, 0);
+        addDecal(waterDecals, cliffX + 1.5f, cliffY + 1.5f, 1.8f, 1f, sw1, 1f, 1);
+        addDecal(waterDecals, cliffX + 1.3f, cliffY + 1.3f, 1.1f, 1f, sw2, 0.8f, 1);
         // Magischer Platz: sanftes violettes Leuchten am Boden der geheimen Lichtung
         addDecal(decals, secretX, secretY, 3.0f, 1f, Painter_rgb(0xB48CF0), 0.30f, 0);
         addDecal(decals, secretX, secretY, 1.7f, 1f, Painter_rgb(0xE4D2FF), 0.35f, 0);
@@ -358,12 +404,16 @@ public final class WorldMap {
         TextureRegion log = art.get("log0");
 
         buildSecretRing(bushes, rocks, trees, art.get("vine"));
+        Decor cl = add(art.get("cliff"), cliffX, cliffY, 0.95f, 14f);
+        cl.flip = false; cl.shadowW = 0f;
+        Decor fall = add(art.get("waterfall0"), cliffX + 0.95f, cliffY + 0.95f, 0.85f, 14f);
+        fall.fall = true; fall.flip = false; fall.alpha = 0.82f;
         // --- Bäume: erst dichter Waldrand, dann lichter Innenraum
         int tries = 0;
         while (tries++ < 6000) {
             float x = rf(2, N - 2), y = rf(2, N - 2);
             float f = field(x, y);
-            if (f > 1.18f || inSecret(x, y, 0.9f)) continue;
+            if (f > 1.18f || inSecret(x, y, 2.6f) || nearCliff(x, y, 0.8f) || nearStream(x, y, 1.7f)) continue;
             boolean rim = f > 0.80f;
             if (!rim && (nearSpawn(x, y, 7.5f) || distToPath(x, y) < 1.7f || inPond(x, y, 2.0f))) continue;
             if (rim && (distToPath(x, y) < 1.0f && f < 0.95f)) continue;
@@ -384,7 +434,7 @@ public final class WorldMap {
         tries = 0; int count = 0;
         while (tries++ < 3000 && count < 110) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 1.0f || nearSpawn(x, y, 3.2f) || distToPath(x, y) < 0.9f || inPond(x, y, 1.3f)) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(bushes.get(rnd.nextInt(bushes.size)), x, y, rf(0.65f, 1.0f), 16f);
             d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f); d.tint = tintFor(x, y, 1.0f);
@@ -395,7 +445,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 2000 && count < 26) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(rocks.get(rnd.nextInt(rocks.size)), x, y, rf(0.55f, 0.95f), 14f);
             d.tint = tintFor(x, y, 1.0f); d.solid = 0.32f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale;
@@ -405,7 +455,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 1000 && count < 5) {
             float x = rf(6, N - 6), y = rf(6, N - 6);
-            if (inSecret(x, y, 0.9f) || field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
             Decor d = add(log, x, y, rf(0.8f, 1.0f), 22f);
             d.tint = tintFor(x, y, 1.0f); d.solid = 0.45f * d.scale; d.shadowW = 190f * d.scale; d.shadowH = 56f * d.scale;
             placed.add(new float[] { x, y, 1.2f }); count++;
@@ -414,7 +464,7 @@ public final class WorldMap {
         tries = 0; count = 0;
         while (tries++ < 2000 && count < 34) {
             float x = rf(3, N - 3), y = rf(3, N - 3);
-            if (inSecret(x, y, 0.9f) || field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
+            if (inSecret(x, y, 0.9f) || nearCliff(x, y, 0.4f) || nearStream(x, y, 1.3f) || field(x, y) > 0.95f || nearSpawn(x, y, 2.5f) || distToPath(x, y) < 0.7f || inPond(x, y, 1.0f)) continue;
             Decor d = add(mush.get(rnd.nextInt(mush.size)), x, y, rf(0.7f, 1.1f), 10f);
             d.tint = tintFor(x, y, 1.0f); d.shadowW = 50f * d.scale; d.shadowH = 20f * d.scale;
             count++;
