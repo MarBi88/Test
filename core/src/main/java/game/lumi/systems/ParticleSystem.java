@@ -17,6 +17,7 @@ public final class ParticleSystem {
     private final float[] mx = new float[MOTES], my = new float[MOTES], mPhase = new float[MOTES], mSize = new float[MOTES];
     private final float[] lx = new float[LEAVES], ly = new float[LEAVES], lRot = new float[LEAVES], lPhase = new float[LEAVES], lLife = new float[LEAVES];
     private static final int SPARKS = 48;
+    private final float[] sr = new float[SPARKS], sg = new float[SPARKS], sb = new float[SPARKS];
     private final float[] sx = new float[SPARKS], sy = new float[SPARKS], svx = new float[SPARKS], svy = new float[SPARKS], sLife = new float[SPARKS], sMax = new float[SPARKS];
     private int nextSpark;
     private final TextureRegion glow, leaf;
@@ -64,10 +65,13 @@ public final class ParticleSystem {
     }
 
     /** Funkelnder Sammel-Effekt (Bildschirmkoordinaten). */
-    public void burst(float x, float y, int n) {
+    public void burst(float x, float y, int n) { burst(x, y, n, 0.6f, 1f, 0.92f); }
+
+    public void burst(float x, float y, int n, float r, float g, float bl) {
         for (int k = 0; k < n; k++) {
             int i = nextSpark; nextSpark = (nextSpark + 1) % SPARKS;
             float a = MathUtils.random(MathUtils.PI2), v = MathUtils.random(40f, 170f);
+            sr[i] = r; sg[i] = g; sb[i] = bl;
             sx[i] = x; sy[i] = y; svx[i] = MathUtils.cos(a) * v; svy[i] = MathUtils.sin(a) * v * 0.8f + 40f;
             sMax[i] = sLife[i] = MathUtils.random(0.6f, 1.1f);
         }
@@ -100,7 +104,7 @@ public final class ParticleSystem {
             if (sLife[i] <= 0f) continue;
             float t = sLife[i] / sMax[i];
             float s = 5f + 13f * t;
-            b.setColor(0.6f, 1f, 0.92f, t * 0.85f);
+            b.setColor(sr[i], sg[i], sb[i], t * 0.85f);
             b.draw(glow, sx[i] - s, sy[i] - s, s * 2f, s * 2f);
         }
         int nf = Math.round(FIREFLIES * quality), nm = Math.round(MOTES * quality);

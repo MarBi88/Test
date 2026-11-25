@@ -11,7 +11,7 @@ import game.lumi.input.TouchInput;
 public final class GameHUD {
     private final ArtSheet art;
     private final TextureRegion circle, ring, knob, jump, pause;
-    private float time;
+    private float time, interactPop;
 
     public GameHUD(ArtSheet art) {
         this.art = art;
@@ -37,8 +37,9 @@ public final class GameHUD {
         b.setColor(Color.WHITE);
     }
 
-    public void draw(SpriteBatch b, TouchInput t, float dt, String bits, float uiH) {
+    public void draw(SpriteBatch b, TouchInput t, float dt, String bits, float uiH, boolean canInteract) {
         time += dt;
+        interactPop += ((canInteract ? 1f : 0f) - interactPop) * Math.min(1f, 10f * dt);
         drawCollection(b, bits, uiH);
         boolean showTouch = GameConfig.touchDevice || t.used;
         if (showTouch) {
@@ -59,6 +60,7 @@ public final class GameHUD {
             // Sprungtaste
             float s = t.jumpHeld ? 0.92f : 1f;
             round(b, t.jumpX, t.jumpY, TouchInput.JUMP_R * s, jump, 0.96f, 0.55f, 0.2f);
+            if (interactPop > 0.05f) round(b, t.actX, t.actY, TouchInput.ACT_R * interactPop * (t.interactHeld ? 0.92f : 1f), art.get("icon_paw"), 0.96f, 0.45f, 0.1f);
         }
         round(b, t.pauseX, t.pauseY, TouchInput.PAUSE_R * 0.92f, pause, 0.35f, 0.5f, 0.5f);
         b.setColor(Color.WHITE);

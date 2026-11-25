@@ -30,6 +30,10 @@ public final class SaveManager {
 
     public void setCrystals(String bits) { put(() -> prefs.putString("crystals", bits)); flush(); }
 
+    public String getFlags() { return prefs == null ? "" : prefs.getString("flags", ""); }
+
+    public void setFlags(String bits) { put(() -> prefs.putString("flags", bits)); flush(); }
+
     public boolean soundOn() { return prefs == null || prefs.getBoolean("sound", true); }
 
     public void setSound(boolean on) { put(() -> prefs.putBoolean("sound", on)); flush(); }

@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Array;
 import game.lumi.art.ArtFactory;
 import game.lumi.art.ArtSheet;
 import game.lumi.entities.Decor;
+import game.lumi.entities.Entity;
 import game.lumi.entities.Player;
 
 /**
@@ -22,6 +23,7 @@ public final class WorldRenderer {
     private final TextureRegion blob, shadow, glow, ring, ray, vignette, crystal;
     private final float[] verts = new float[40];
     private float time;
+    private final Entity[] dyn = new Entity[12];
     /** Entwickler-Hilfe: 0 Kacheln, 1 Bodenflecken, 2 Objekte, 3 Schatten ausblenden. */
     public final boolean[] hide = new boolean[4];
 
@@ -101,17 +103,25 @@ public final class WorldRenderer {
         b.setColor(Color.WHITE);
         w.lumi.drawShadow(b, pSX, pSY, p.z);
 
-        // ---- Objekte tiefensortiert
-        boolean playerDrawn = false;
-        int ci = 0;
+        // ---- Objekte tiefensortiert (statische Liste + wenige bewegliche Figuren, per Einfügesort pro Frame)
+        int dn = 0;
+        dyn[dn++] = p;
+        for (int i = 0; i < w.animals.size && dn < dyn.length; i++) dyn[dn++] = w.animals.get(i);
+        for (int i = 1; i < dn; i++) {
+            Entity e = dyn[i]; int j = i - 1;
+            while (j >= 0 && dyn[j].depth() > e.depth()) { dyn[j + 1] = dyn[j]; j--; }
+            dyn[j + 1] = e;
+        }
+        int di = 0, ci = 0;
         Array<game.lumi.entities.Collectible> cr = w.crystals;
         float fade = Math.min(1f, 9f * dt);
         for (int i = 0; i < decor.size; i++) {
             Decor d = decor.get(i);
-            while (ci < cr.size && cr.get(ci).depth() <= d.depth()) drawCrystal(b, cr.get(ci++), L, R, B, T);
-            if (!playerDrawn && d.depth() > pDepth) { w.lumi.draw(b, pSX, pSY, p.z); playerDrawn = true; }
+            float dd = d.depth();
+            while (ci < cr.size && cr.get(ci).depth() <= dd) drawCrystal(b, cr.get(ci++), L, R, B, T);
+            while (di < dn && dyn[di].depth() <= dd) drawDyn(b, w, dyn[di++]);
             if (d.occluder) {
-                boolean hides = d.depth() > pDepth && d.depth() < pDepth + 7f && d.left < pr && d.right > pl && d.top > pb && d.bottom < pt
+                boolean hides = dd > pDepth && dd < pDepth + 7f && d.left < pr && d.right > pl && d.top > pb && d.bottom < pt
                         && overlapsCanopy(d, pl, pr, pb, pt);
                 d.alpha += ((hides ? 0.34f : 1f) - d.alpha) * fade;
             }
@@ -119,7 +129,9 @@ public final class WorldRenderer {
             drawDecor(b, d);
         }
         while (ci < cr.size) drawCrystal(b, cr.get(ci++), L, R, B, T);
-        if (!playerDrawn) w.lumi.draw(b, pSX, pSY, p.z);
+        while (di < dn) drawDyn(b, w, dyn[di++]);
+        b.setColor(Color.WHITE);
+        for (int i = 0; i < w.animals.size; i++) w.animalArt.drawBubble(b, w.animals.get(i), time);
         b.setColor(Color.WHITE);
 
         // ---- Leuchteffekte (additiv)
@@ -141,8 +153,13 @@ public final class WorldRenderer {
         return pt > canopyBottom;
     }
 
+    private void drawDyn(SpriteBatch b, GameWorld w, Entity e) {
+        if (e == w.player) w.lumi.draw(b, w.player.screenX(), w.player.screenY(), w.player.z);
+        else w.animalArt.draw(b, (game.lumi.entities.Animal) e);
+    }
+
     private void drawCrystal(SpriteBatch b, game.lumi.entities.Collectible c, float L, float R, float B, float T) {
-        if (c.vanish >= 1f) return;
+        if (c.vanish >= 1f || !c.active) return;
         float sx = c.screenX(), sy = c.screenY();
         if (sx < L - 60f || sx > R + 60f || sy < B - 60f || sy > T + 60f) return;
         float k = 1f - c.vanish;
@@ -156,7 +173,7 @@ public final class WorldRenderer {
     }
 
     private void drawCrystalGlow(SpriteBatch b, game.lumi.entities.Collectible c, float L, float R, float B, float T) {
-        if (c.vanish >= 1f) return;
+        if (c.vanish >= 1f || !c.active) return;
         float sx = c.screenX(), sy = c.screenY();
         if (sx < L - 100f || sx > R + 100f || sy < B - 100f || sy > T + 100f) return;
         float pulse = 0.55f + 0.45f * MathUtils.sin(time * 2.2f + c.phase);

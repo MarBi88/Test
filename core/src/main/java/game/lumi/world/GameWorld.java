@@ -5,11 +5,15 @@ import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.utils.Array;
 import game.lumi.art.ArtSheet;
 import game.lumi.characters.LumiCharacter;
+import game.lumi.characters.AnimalCharacter;
+import game.lumi.entities.Animal;
 import game.lumi.entities.Collectible;
 import game.lumi.entities.Decor;
 import game.lumi.entities.Player;
 import game.lumi.input.InputManager;
+import game.lumi.systems.AnimalSystem;
 import game.lumi.systems.CollectionSystem;
+import game.lumi.systems.InteractionSystem;
 import game.lumi.systems.MovementSystem;
 import game.lumi.systems.ParticleSystem;
 
@@ -22,17 +26,28 @@ public final class GameWorld {
     public final LumiCharacter lumi;
     public final ParticleSystem particles;
     public final Array<Collectible> crystals = new Array<>();
+    public final Array<Animal> animals = new Array<>();
+    public final AnimalCharacter animalArt;
+    /** Nächstes interaktives Tier in Reichweite (oder null) – steuert Hinweis-Taste. */
+    public Animal interactTarget;
     public float time;
     /** Wird gesetzt, wenn sich der Sammelstand ändert (Speichern). */
     public boolean collectionChanged;
+    /** Tier-Fortschritt hat sich geändert (Speichern). */
+    public boolean progressChanged;
     private final MovementSystem movement = new MovementSystem();
     private final CollectionSystem collection = new CollectionSystem();
+    private final AnimalSystem animalSystem = new AnimalSystem();
+    private final InteractionSystem interaction = new InteractionSystem(animalSystem);
 
     public GameWorld(ArtSheet art) {
         map = new WorldMap(art);
         lumi = new LumiCharacter(art);
         particles = new ParticleSystem(art);
         placeCrystals();
+        animalArt = new AnimalCharacter(art);
+        placeAnimals();
+        for (Animal a : animals) com.badlogic.gdx.Gdx.app.log("Lumi", "Tier " + a.type + " bei " + a.x + "," + a.y);
         for (Collectible c : crystals) com.badlogic.gdx.Gdx.app.log("Lumi", "Kristall " + c.id + " bei " + c.x + "," + c.y + (c.hidden ? " (versteckt)" : ""));
         resetPlayer(map.spawnX, map.spawnY);
     }
@@ -84,7 +99,8 @@ public final class GameWorld {
         // hinter Bäumen: "oben" auf dem Bildschirm = kleinere Tiefe → x, y verkleinern
         Array<Decor> trees = new Array<>();
         for (Decor d : map.decor) if (d.occluder && d.solid > 0.2f && map.field(d.x, d.y) < 0.75f) trees.add(d);
-        trees.shuffle();
+        // deterministisch mischen (Speicherstände referenzieren Kristalle über ihren Index!)
+        for (int i = trees.size - 1; i > 0; i--) trees.swap(i, r.nextInt(i + 1));
         for (Decor t : trees) {
             if (crystals.size >= CRYSTALS) break;
             float x = t.x - 0.95f, y = t.y - 0.95f;
@@ -100,6 +116,58 @@ public final class GameWorld {
         }
         crystals.sort((a, b) -> Float.compare(a.depth(), b.depth()));
         for (int i = 0; i < crystals.size; i++) crystals.get(i).id = i;
+    }
+
+    private void findFree(Animal a, float x, float y) {
+        for (float r = 0f; r < 4f; r += 0.35f) {
+            for (int k = 0; k < 10; k++) {
+                float ang = k * 0.628f + r;
+                float px = x + MathUtils.cos(ang) * r, py = y + MathUtils.sin(ang) * r;
+                if (map.walkable(px, py) && map.free(px, py, 0.4f) && map.distToPath(px, py) > 0f) { a.x = px; a.y = py; a.homeX = px; a.homeY = py; return; }
+            }
+        }
+        a.x = a.homeX = map.spawnX; a.y = a.homeY = map.spawnY;
+    }
+
+    /** Kaninchen und Vogel nahe der Lichtung; das Eichhörnchen wohnt neben einem versteckten Kristall (sein Geschenk). */
+    private void placeAnimals() {
+        Animal rabbit = new Animal(Animal.Type.RABBIT);
+        findFree(rabbit, map.spawnX - 6f, map.spawnY + 3.5f);
+        Animal bird = new Animal(Animal.Type.BIRD);
+        findFree(bird, map.spawnX + 4.5f, map.spawnY - 4.5f);
+        Animal squirrel = new Animal(Animal.Type.SQUIRREL);
+        Collectible gift = null;
+        for (Collectible c : crystals) if (c.hidden) { gift = c; break; }
+        if (gift == null) gift = crystals.get(crystals.size - 1);
+        gift.active = false;
+        squirrel.crystalId = gift.id;
+        findFree(squirrel, gift.x + 0.9f, gift.y - 0.9f);
+        for (Animal a : new Animal[] { rabbit, squirrel, bird }) {
+            a.timer = MathUtils.random(0.5f, 3f);
+            animals.add(a);
+        }
+    }
+
+    /** Zwei Zeichen: Kaninchen gefüttert, Eichhörnchen hat gegraben. */
+    public String flagsBits() {
+        StringBuilder sb = new StringBuilder();
+        for (Animal a : animals) if (a.type != Animal.Type.BIRD) sb.append(a.done ? '1' : '0');
+        return sb.toString();
+    }
+
+    public void loadFlags(String bits) {
+        int i = 0;
+        for (Animal a : animals) {
+            if (a.type == Animal.Type.BIRD) continue;
+            a.done = i < bits.length() && bits.charAt(i) == '1';
+            i++;
+            a.happy = 0f; a.bubble = 0f;
+            if (a.type == Animal.Type.SQUIRREL && a.crystalId >= 0) {
+                Collectible c = crystals.get(a.crystalId);
+                c.active = a.done || c.collected;
+                if (c.collected) a.done = true;
+            }
+        }
     }
 
     private boolean farFromOthers(float x, float y, float d) {
@@ -142,6 +210,8 @@ public final class GameWorld {
     public void update(float dt, InputManager in) {
         time += dt;
         movement.update(player, in, map, dt);
+        animalSystem.update(this, dt);
+        interaction.update(this, in);
         if (collection.update(this, dt)) collectionChanged = true;
         lumi.update(dt, player);
     }

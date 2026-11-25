@@ -35,6 +35,7 @@ public final class LumiCharacter {
     private float earTwitchTimer = 3f, earTwitch;
     private float happyTime;
     private float curiousTime;
+    private float interactTime;
 
     public LumiCharacter(ArtSheet art) {
         body = art.get("lumi_body"); bodyBack = art.get("lumi_bodyBack");
@@ -48,6 +49,9 @@ public final class LumiCharacter {
 
     /** Freudige Reaktion (Hüpfer + glückliche Augen), z. B. beim Einsammeln. */
     public void cheer() { happyTime = 1.3f; }
+    /** Kurzes Untersuchen/Anstupsen: Kopf senkt sich, Schwanz wedelt. */
+    public void interact() { interactTime = 0.9f; }
+
     /** Neugieriger Blick (Kopf neigen, Ohren aufrichten). */
     public void beCurious(float seconds) { curiousTime = Math.max(curiousTime, seconds); }
 
@@ -59,6 +63,7 @@ public final class LumiCharacter {
         time += dt;
         happyTime = Math.max(0f, happyTime - dt);
         curiousTime = Math.max(0f, curiousTime - dt);
+        interactTime = Math.max(0f, interactTime - dt);
 
         boolean sleeping = p.state == Player.State.SLEEP;
         boolean walking = p.state == Player.State.WALK, running = p.state == Player.State.RUN;
@@ -126,6 +131,12 @@ public final class LumiCharacter {
         }
         if (curiousTime > 0f) {
             tTilt += 12f * (p.facingX); tEar = Math.min(tEar, -3f); tHeadY += 3f; tLookY = 0.4f;
+        }
+        if (interactTime > 0f) {
+            float u = 1f - interactTime / 0.9f;
+            float nod = MathUtils.sin(u * MathUtils.PI);
+            tHeadY -= 6f * nod; tTilt += 8f * p.facingX * nod; tSquashY = Math.min(tSquashY, 1f - 0.05f * nod);
+            tSwing = 20f; tLookY = -0.5f;
         }
         float tSleep = sleeping ? 1f : 0f;
         float tHappy = happyTime > 0f ? 1f : 0f;

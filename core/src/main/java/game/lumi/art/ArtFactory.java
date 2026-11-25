@@ -39,6 +39,7 @@ public final class ArtFactory {
         log(s);
         leaf(s);
         crystal(s);
+        AnimalArt.build(s);
         LumiArt.build(s);
         UiArt.build(s);
         s.finish();

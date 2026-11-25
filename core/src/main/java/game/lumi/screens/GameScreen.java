@@ -62,6 +62,7 @@ public final class GameScreen extends ScreenAdapter {
             game.world.particles.update(dt, game.cam.camera.position.x, game.cam.camera.position.y,
                     game.cam.camera.viewportWidth, game.cam.camera.viewportHeight);
             game.save.setPosition(p.x, p.y);
+            if (game.world.progressChanged) { game.world.progressChanged = false; game.save.setFlags(game.world.flagsBits()); }
             if (game.world.collectionChanged) { game.world.collectionChanged = false; game.save.setCrystals(game.world.collectedBits()); }
             game.save.tick(dt);
         } else {
@@ -78,7 +79,7 @@ public final class GameScreen extends ScreenAdapter {
         game.batch.begin();
         game.renderer.drawVignette(game.batch, ui.getWorldWidth(), ui.getWorldHeight());
         if (paused) pauseMenu.draw(game.batch, ui);
-        else hud.draw(game.batch, input.touch, dt, game.world.collectedBits(), ui.getWorldHeight());
+        else hud.draw(game.batch, input.touch, dt, game.world.collectedBits(), ui.getWorldHeight(), game.world.interactTarget != null);
         if (debugAtlas) {
             game.batch.setColor(0.2f, 0.2f, 0.25f, 1f);
             game.batch.draw(game.art.get("white"), 0, 0, ui.getWorldWidth(), ui.getWorldHeight());

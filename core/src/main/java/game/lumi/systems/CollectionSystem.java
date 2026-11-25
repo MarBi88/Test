@@ -12,6 +12,7 @@ public final class CollectionSystem {
         boolean got = false;
         float near = 1e9f;
         for (Collectible c : w.crystals) {
+            if (!c.active) continue;
             if (c.collected) { c.vanish = Math.min(1f, c.vanish + dt * 2.2f); continue; }
             float dx = c.x - w.player.x, dy = c.y - w.player.y;
             float d2 = dx * dx + dy * dy;
