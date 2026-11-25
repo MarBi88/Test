@@ -4,7 +4,7 @@ package game.lumi.entities;
 public final class Player extends Entity {
     public enum State { IDLE, WALK, RUN, JUMP, LAND, SLEEP }
 
-    public static final float RADIUS = 0.26f;
+    public static final float RADIUS = 0.2f;
 
     public float vx, vy;
     /** Höhe über dem Boden in Pixeln. */

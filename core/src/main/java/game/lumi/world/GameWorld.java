@@ -88,7 +88,7 @@ public final class GameWorld {
             for (int k = 0; k < 4; k++) {
                 int nx = cx + dx[k], ny = cy + dy[k];
                 if (nx < 0 || ny < 0 || nx >= rn || ny >= rn || reach[ny * rn + nx]) continue;
-                if (!map.free(nx * STEP, ny * STEP, 0.26f)) continue;
+                if (!map.free(nx * STEP, ny * STEP, 0.22f)) continue;
                 reach[ny * rn + nx] = true; queue[tail++] = ny * rn + nx;
             }
         }

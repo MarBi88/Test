@@ -88,13 +88,36 @@ public final class WorldMap {
         return px * px + py * py > 1f;
     }
 
-    /** Verschiebt (x,y) um (dx,dy) mit Kollision; Gleiten entlang von Hindernissen. Ergebnis in out[0..1]. */
+    /**
+     * Verschiebt (x,y) um (dx,dy). Kollision mit Kreis-Hindernissen durch Herausschieben entlang der Normalen:
+     * Lumi gleitet dadurch weich an Bäumen, Büschen und Steinen vorbei, statt hängen zu bleiben.
+     * Ergebnis in out[0..1].
+     */
     public void move(float x, float y, float dx, float dy, float radius, float[] out) {
         float nx = x + dx, ny = y + dy;
-        if (free(nx, ny, radius)) { out[0] = nx; out[1] = ny; return; }
-        if (free(x + dx, y, radius)) { out[0] = x + dx; out[1] = y; return; }
-        if (free(x, y + dy, radius)) { out[0] = x; out[1] = y + dy; return; }
-        out[0] = x; out[1] = y;
+        if (!walkable(nx, ny)) { // Rand/Teich: achsenweise gleiten
+            if (walkable(x + dx, y)) ny = y; else if (walkable(x, y + dy)) nx = x; else { nx = x; ny = y; }
+        }
+        for (int pass = 0; pass < 3; pass++) {
+            boolean moved = false;
+            for (int i = 0; i < obX.size; i++) { if (push(obX.items[i], obY.items[i], obR.items[i] + radius, nx, ny, dx, dy)) { nx = pushX; ny = pushY; moved = true; } }
+            if (!gateOpen) for (int i = 0; i < gX.size; i++) { if (push(gX.items[i], gY.items[i], 0.55f + radius, nx, ny, dx, dy)) { nx = pushX; ny = pushY; moved = true; } }
+            if (!moved) break;
+        }
+        if (!walkable(nx, ny)) { nx = x; ny = y; }
+        out[0] = nx; out[1] = ny;
+    }
+
+    private float pushX, pushY;
+
+    private boolean push(float ox, float oy, float rr, float nx, float ny, float dx, float dy) {
+        float ex = nx - ox, ey = ny - oy;
+        float d2 = ex * ex + ey * ey;
+        if (d2 >= rr * rr) return false;
+        float d = (float) Math.sqrt(d2);
+        if (d < 1e-4f) { ex = -dx; ey = -dy; d = (float) Math.sqrt(ex * ex + ey * ey); if (d < 1e-6f) { ex = 1f; ey = 0f; d = 1f; } }
+        pushX = ox + ex / d * rr; pushY = oy + ey / d * rr;
+        return true;
     }
 
     public boolean free(float x, float y, float radius) {
@@ -129,17 +152,17 @@ public final class WorldMap {
     public void gateAlphaReset(boolean open) { for (Decor d : gateDecor) d.alpha = open ? 0f : 1f; }
 
     private void buildSecretRing(Array<TextureRegion> bushes, Array<TextureRegion> rocks, Array<TextureRegion> trees, TextureRegion vine) {
-        float step = 0.28f;
+        float step = 0.25f;
         int k = 0;
         for (float a = gateAngle + 0.34f; a < gateAngle + MathUtils.PI2 - 0.34f; a += step, k++) {
             float r = SECRET_R + rf(-0.05f, 0.05f);
             float x = secretX + MathUtils.cos(a) * r, y = secretY + MathUtils.sin(a) * r;
             Decor d;
             switch (k % 4) {
-                case 1: d = add(rocks.get(k % rocks.size), x, y, 0.95f, 14f); d.solid = 0.42f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale; break;
-                case 3: d = add(trees.get(1), x, y, 0.62f, ArtFactory.TREE_ANCHOR); d.solid = 0.30f; d.sway = 4f; d.swaySpeed = rf(0.7f, 1f);
+                case 1: d = add(rocks.get(k % rocks.size), x, y, 0.95f, 14f); d.solid = 0.34f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale; break;
+                case 3: d = add(trees.get(1), x, y, 0.62f, ArtFactory.TREE_ANCHOR); d.solid = 0.28f; d.sway = 4f; d.swaySpeed = rf(0.7f, 1f);
                         d.shadowW = 200f * d.scale; d.shadowH = 90f * d.scale; d.occluder = true; break;
-                default: d = add(bushes.get(k % bushes.size), x, y, 1.15f, 16f); d.solid = 0.38f * d.scale; d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f);
+                default: d = add(bushes.get(k % bushes.size), x, y, 1.15f, 16f); d.solid = 0.30f * d.scale; d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f);
                         d.shadowW = 150f * d.scale; d.shadowH = 60f * d.scale;
             }
             d.tint = tintFor(x, y, 1.0f);
@@ -353,7 +376,7 @@ public final class WorldMap {
             d.sway = 5f * scale; d.swaySpeed = rf(0.6f, 0.95f);
             d.tint = tintFor(x, y, 1.0f);
             d.shadowW = 230f * scale; d.shadowH = 110f * scale;
-            d.solid = (v == 3 ? 0.55f : 0.40f) * scale;
+            d.solid = (v == 3 ? 0.45f : 0.30f) * scale;
             d.occluder = true;
             placed.add(new float[] { x, y, gap * 0.5f });
         }
@@ -365,7 +388,7 @@ public final class WorldMap {
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(bushes.get(rnd.nextInt(bushes.size)), x, y, rf(0.65f, 1.0f), 16f);
             d.sway = 3f; d.swaySpeed = rf(0.8f, 1.2f); d.tint = tintFor(x, y, 1.0f);
-            d.shadowW = 150f * d.scale; d.shadowH = 60f * d.scale; d.solid = 0.38f * d.scale;
+            d.shadowW = 150f * d.scale; d.shadowH = 60f * d.scale; d.solid = 0.28f * d.scale;
             placed.add(new float[] { x, y, 0.8f }); count++;
         }
         // --- Steine
@@ -375,7 +398,7 @@ public final class WorldMap {
             if (inSecret(x, y, 0.9f) || field(x, y) > 0.95f || nearSpawn(x, y, 3f) || distToPath(x, y) < 0.8f) continue;
             if (!spaceFor(x, y, 1.5f)) continue;
             Decor d = add(rocks.get(rnd.nextInt(rocks.size)), x, y, rf(0.55f, 0.95f), 14f);
-            d.tint = tintFor(x, y, 1.0f); d.solid = 0.42f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale;
+            d.tint = tintFor(x, y, 1.0f); d.solid = 0.32f * d.scale; d.shadowW = 120f * d.scale; d.shadowH = 44f * d.scale;
             placed.add(new float[] { x, y, 0.8f }); count++;
         }
         // --- Baumstämme
@@ -384,7 +407,7 @@ public final class WorldMap {
             float x = rf(6, N - 6), y = rf(6, N - 6);
             if (inSecret(x, y, 0.9f) || field(x, y) > 0.85f || nearSpawn(x, y, 5f) || distToPath(x, y) < 1.5f || inPond(x, y, 2f) || !spaceFor(x, y, 2.4f)) continue;
             Decor d = add(log, x, y, rf(0.8f, 1.0f), 22f);
-            d.tint = tintFor(x, y, 1.0f); d.solid = 0.55f * d.scale; d.shadowW = 190f * d.scale; d.shadowH = 56f * d.scale;
+            d.tint = tintFor(x, y, 1.0f); d.solid = 0.45f * d.scale; d.shadowW = 190f * d.scale; d.shadowH = 56f * d.scale;
             placed.add(new float[] { x, y, 1.2f }); count++;
         }
         // --- Pilze (an Baumrändern)
